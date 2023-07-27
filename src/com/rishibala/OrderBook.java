@@ -5,8 +5,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class OrderBook {
-    private SortedMap<Double, List<Order>> buyOrders;
-    private SortedMap<Double, List<Order>> sellOrders;
+    private final SortedMap<Double, List<Order>> buyOrders;
+    private final SortedMap<Double, List<Order>> sellOrders;
 
     public OrderBook() {
         buyOrders = new TreeMap<>();
@@ -61,7 +61,7 @@ public class OrderBook {
         }
     }
 
-    public boolean removeOrder(int orderId) {
+    boolean removeOrder(int orderId) {
         Order order = new Order();
         boolean check = false;
         for(List<Order> entries : buyOrders.values()) {
@@ -89,5 +89,15 @@ public class OrderBook {
         } else {
             return false;
         }
+    }
+
+    public SortedMap<Double, List<Order>> getBuyOrders() {
+        SortedMap<Double, List<Order>> copy = new TreeMap<>(buyOrders);
+        return copy;
+    }
+
+    public SortedMap<Double, List<Order>> getSellOrders() {
+        SortedMap<Double, List<Order>> copy = new TreeMap<>(sellOrders);
+        return copy;
     }
 }
