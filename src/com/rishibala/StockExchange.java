@@ -9,6 +9,7 @@ import java.util.Map;
 public class StockExchange {
     private static final Map<Integer, Socket> bots = new HashMap<>();
     private static final Map<Socket, Integer> ids = new HashMap<>();
+    private static final Map<Socket, User> users = new HashMap<>();
 //    private static final List<Thread> threads = new ArrayList<>();
     private static final OrderBook book = new OrderBook();
     private static boolean first = true;
@@ -46,6 +47,10 @@ public class StockExchange {
 
     static int getId(Socket socket) {
         return ids.get(socket);
+    }
+
+    static User getUser(Socket socket) {
+        return users.get(socket);
     }
 
 }

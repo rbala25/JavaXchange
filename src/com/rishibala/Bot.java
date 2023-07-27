@@ -29,33 +29,38 @@ public class Bot implements Runnable{
         }
     }
 
-    public Bot() {
-    }
-
     @Override
     public void run() {
-        bots.add(this);
-        System.out.println(botId + " connected");
+        try {
+            bots.add(this);
+            System.out.println(botId + " connected");
 
-        try (ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+            String recievedMessage;
+            while ((recievedMessage = in.readLine()) != null) {
+                if(recievedMessage.toLowerCase().contains("cancel")) {
+                    String[] args = recievedMessage.split(",");
+                    for(int i=0; i<args.length; i++) {
+                        args[i] = args[i].trim();
+                    }
 
-            while (true) {
-                Object receivedMessage = in.readObject();
-
-                if (receivedMessage instanceof Order) {
-                    Order order = (Order) receivedMessage;
-                    handleOrder(order);
-
-
-
+                    int orderId = Integer.parseInt(args[1]);
+                    orderBook.removeOrder(orderId);
                 } else {
-                    //cancel order requests
+                    Order order = Order.unserialize(recievedMessage, socket);
+                    handleOrder(order);
                 }
             }
 
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println(botId + " disconnected.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+                out.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }
