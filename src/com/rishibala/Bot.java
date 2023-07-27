@@ -46,6 +46,9 @@ public class Bot implements Runnable{
                 if (receivedMessage instanceof Order) {
                     Order order = (Order) receivedMessage;
                     handleOrder(order);
+
+
+
                 } else {
                     //cancel order requests
                 }

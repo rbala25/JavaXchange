@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class StockExchange {
     private static final Map<Integer, Socket> bots = new HashMap<>();
+    private static final Map<Socket, Integer> ids = new HashMap<>();
 //    private static final List<Thread> threads = new ArrayList<>();
     private static final OrderBook book = new OrderBook();
     private static boolean first = true;
@@ -24,6 +25,7 @@ public class StockExchange {
                 System.out.println("New connection: " + botSocket.getInetAddress().getHostAddress());
 
                 bots.put(botId++, botSocket);
+                ids.put(botSocket, botId);
 
                 User user;
                 if(first) {
@@ -40,6 +42,10 @@ public class StockExchange {
         } catch (IOException e) {
             System.out.println(e);
         }
+    }
+
+    static int getId(Socket socket) {
+        return ids.get(socket);
     }
 
 }

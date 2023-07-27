@@ -1,5 +1,7 @@
 package com.rishibala;
 
+import java.net.Socket;
+
 public record Order(int botId, Type type, double price, int quantity, int orderId) {
     enum Type {BUY, SELL};
     private static int placeholder = 1;
@@ -27,7 +29,13 @@ public record Order(int botId, Type type, double price, int quantity, int orderI
         Type type = (args[1].equals("BUY")) ? Type.BUY : Type.SELL;
 
         return new Order(Integer.parseInt(args[0]), type, Double.parseDouble(args[2]),
-                Integer.parseInt(args[3]), Integer.parseInt(args[4]));
+                Integer.parseInt(args[3]));
+    }
+
+    public static Order unserialize(String str, Socket socket) {
+        String updated = StockExchange.getId(socket) + ", " + str;
+
+        return toOrder(updated);
     }
 
     @Override
