@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class StockExchange {
     private static final Map<Integer, Socket> bots = new HashMap<>();
+//    private static final List<Thread> threads = new ArrayList<>();
     private static final OrderBook book = new OrderBook();
     private static boolean first = true;
 
@@ -32,6 +33,7 @@ public class StockExchange {
                 }
 
                 Thread botThread = new Thread(new Bot(botSocket, botId, book, user));
+//                threads.add(botThread);
                 botThread.start();
             }
 

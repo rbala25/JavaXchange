@@ -1,8 +1,6 @@
 package com.rishibala;
 
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public class OrderBook {
     private final SortedMap<Double, List<Order>> buyOrders;
@@ -99,5 +97,28 @@ public class OrderBook {
     public SortedMap<Double, List<Order>> getSellOrders() {
         SortedMap<Double, List<Order>> copy = new TreeMap<>(sellOrders);
         return copy;
+    }
+
+    public List<Set<Order>> matchOrders() {
+        List<Set<Order>> matches = new ArrayList<>();
+        for(List<Order> list : sellOrders.values()) {
+            for(Order order : list) {
+                var buys = buyOrders.values();
+                boolean matchGot = false;
+
+                for(List<Order> buys1 : buys) {
+                    for(Order buy : buys1) {
+                        if(buy.price() >= order.price()) {
+                            if(!matchGot) {
+                                matches.add(new HashSet<>(Set.of(order, buy)));
+                                matchGot = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return matches;
     }
 }
