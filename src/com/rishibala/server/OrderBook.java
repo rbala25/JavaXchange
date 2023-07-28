@@ -1,17 +1,17 @@
-package com.rishibala;
+package com.rishibala.server;
 
 import java.util.*;
 
-public class OrderBook {
+class OrderBook {
     private final SortedMap<Double, List<Order>> buyOrders;
     private final SortedMap<Double, List<Order>> sellOrders;
 
-    public OrderBook() {
+    OrderBook() {
         buyOrders = new TreeMap<>();
         sellOrders = new TreeMap<>();
     }
 
-    public void addOrder(Order order) {
+    void addOrder(Order order) {
         if(order.botId() == -1) {
             return;
         }
@@ -34,13 +34,11 @@ public class OrderBook {
         }
     }
 
-    boolean removeOrder(Order order) {
+    void removeOrder(Order order) {
         if(order.type().equals(Order.Type.BUY)) {
             List<Order> vals = buyOrders.get(order.price());
 
-           boolean removed = vals.remove(order);
            buyOrders.put(order.price(), vals);
-           return removed;
 
 //            if(vals != null) {
 //                for(int i=0; i<vals.size(); i++) {
@@ -53,13 +51,11 @@ public class OrderBook {
         } else {
             List<Order> vals = sellOrders.get(order.price());
 
-            boolean removed = vals.remove(order);
             sellOrders.put(order.price(), vals);
-            return removed;
         }
     }
 
-    boolean removeOrder(int orderId) {
+    void removeOrder(int orderId) {
         Order order = new Order();
         boolean check = false;
         for(List<Order> entries : buyOrders.values()) {
@@ -83,23 +79,19 @@ public class OrderBook {
         }
 
         if(check) {
-            return removeOrder(order);
-        } else {
-            return false;
+            removeOrder(order);
         }
     }
 
-    public SortedMap<Double, List<Order>> getBuyOrders() {
-        SortedMap<Double, List<Order>> copy = new TreeMap<>(buyOrders);
-        return copy;
+    SortedMap<Double, List<Order>> getBuyOrders() {
+        return new TreeMap<>(buyOrders);
     }
 
-    public SortedMap<Double, List<Order>> getSellOrders() {
-        SortedMap<Double, List<Order>> copy = new TreeMap<>(sellOrders);
-        return copy;
+    SortedMap<Double, List<Order>> getSellOrders() {
+        return new TreeMap<>(sellOrders);
     }
 
-    public List<Set<Order>> matchOrders() {
+    List<Set<Order>> matchOrders() {
         List<Set<Order>> matches = new ArrayList<>();
         for(List<Order> list : sellOrders.values()) {
             for(Order order : list) {

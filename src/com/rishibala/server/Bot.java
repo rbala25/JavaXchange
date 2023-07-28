@@ -1,4 +1,4 @@
-package com.rishibala;
+package com.rishibala.server;
 
 import java.io.*;
 import java.net.Socket;
@@ -6,16 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class Bot implements Runnable{
-    private Socket socket;
-    private int botId;
-    private OrderBook orderBook;
-    private User user;
+class Bot implements Runnable{
+    private final Socket socket;
+    private final int botId;
+    private final OrderBook orderBook;
+    private final User user;
     private PrintWriter out;
     private BufferedReader in;
-    private static List<Bot> bots = new ArrayList<>();
+    private static final List<Bot> bots = new ArrayList<>();
 
-    public Bot(Socket socket, int botId, OrderBook orderBook, User user) {
+    Bot(Socket socket, int botId, OrderBook orderBook, User user) {
         this.socket = socket;
         this.botId = botId;
         this.orderBook = orderBook;
@@ -70,7 +70,11 @@ public class Bot implements Runnable{
         if(order.type().equals(Order.Type.SELL) && user.getStockAmt() >= order.quantity()) {
             orderBook.addOrder(order);
         } else if (order.type().equals(Order.Type.BUY)) {
-            orderBook.addOrder(order);
+            if(order.quantity() > 100) {
+                orderBook.addOrder(new Order(order.botId(), order.type(), order.price(), 100, order.orderId()));
+            } else {
+                orderBook.addOrder(order);
+            }
         } else {
             if(user.getStockAmt() < order.quantity()) {
                 orderBook.addOrder(new Order(order.botId(), order.type(),

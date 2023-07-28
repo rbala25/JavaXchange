@@ -1,16 +1,16 @@
-package com.rishibala;
+package com.rishibala.server;
 
 import java.net.Socket;
 
-public record Order(int botId, Type type, double price, int quantity, int orderId) {
+record Order(int botId, Type type, double price, int quantity, int orderId) {
     enum Type {BUY, SELL};
     private static int placeholder = 1;
 
-    public Order() {
+    Order() {
         this(-1, null, 0, 0, placeholder++);
     }
 
-    public Order(int botId, Type type, double price, int quantity) {
+    Order(int botId, Type type, double price, int quantity) {
         this(botId, type, price, quantity, placeholder++);
     }
 
@@ -19,7 +19,7 @@ public record Order(int botId, Type type, double price, int quantity, int orderI
         return botId + ", " + type + ", " + price + ", " +  quantity + ", " + orderId;
     }
 
-    public static Order toOrder(String str) {
+    static Order toOrder(String str) {
         String[] args = str.split(",");
 
         for(int i=0; i<args.length; i++) {
@@ -32,7 +32,7 @@ public record Order(int botId, Type type, double price, int quantity, int orderI
                 Integer.parseInt(args[3]));
     }
 
-    public static Order unserialize(String str, Socket socket) {
+    static Order unserialize(String str, Socket socket) {
         String updated = StockExchange.getId(socket) + ", " + str;
 
         return toOrder(updated);
@@ -41,9 +41,6 @@ public record Order(int botId, Type type, double price, int quantity, int orderI
     @Override
     public boolean equals(Object obj) {
         Order order = (Order) obj;
-        if(order.orderId == this.orderId) {
-            return true;
-        }
-        return false;
+        return (order.orderId == this.orderId);
     }
 }

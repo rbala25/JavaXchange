@@ -1,4 +1,4 @@
-package com.rishibala;
+package com.rishibala.server;
 
 public class User {
     private final int botId;

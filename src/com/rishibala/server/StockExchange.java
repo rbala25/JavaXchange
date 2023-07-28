@@ -1,4 +1,4 @@
-package com.rishibala;
+package com.rishibala.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -30,7 +30,7 @@ public class StockExchange {
 
                 User user;
                 if(first) {
-                    user = new User(botId, 50);
+                    user = new User(botId, 100);
                 } else {
                     user = new User(botId, 0);
                 }
@@ -41,7 +41,7 @@ public class StockExchange {
             }
 
         } catch (IOException e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 
