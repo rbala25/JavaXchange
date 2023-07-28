@@ -35,6 +35,8 @@ class Bot implements Runnable{
             bots.add(this);
             System.out.println("Bot " + botId + " connected");
 
+            out.println(botId + "," + user.toString());
+
             String recievedMessage;
             while ((recievedMessage = in.readLine()) != null) {
                 if(recievedMessage.toLowerCase().contains("cancel")) {

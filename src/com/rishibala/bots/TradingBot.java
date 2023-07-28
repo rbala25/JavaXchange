@@ -4,7 +4,9 @@ import com.rishibala.server.OrderBook;
 import com.rishibala.server.StockExchange;
 import com.rishibala.server.User;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
@@ -15,7 +17,7 @@ public class TradingBot {
     public static void main(String[] args) {
         try {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
-//            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             Scanner s = new Scanner(System.in);
 
@@ -24,9 +26,27 @@ public class TradingBot {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+
+            int botId = 0;
+            User user = new User();
+
+            while(user.getBotId() <= 0) {
+                try {
+                    String serverMessage = in.readLine();
+                    if(serverMessage != null) {
+                        System.out.println(serverMessage);
+                        String[] arg = serverMessage.split(",");
+                        botId = Integer.parseInt(arg[0]);
+                        user = User.unString(arg[1]);
+                        System.out.println(botId);
+                        System.out.println(user);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
             OrderBook book = StockExchange.getBook();
-            int botId = StockExchange.getId(socket);
-            User user = StockExchange.getUser(socket);
 
             if(botId == -1 || user == null) {
                 System.out.println(botId);
@@ -34,8 +54,6 @@ public class TradingBot {
                 System.out.println("error");
                 return;
             }
-
-            System.out.println("here");
 
             while(true) {
                 System.out.println("""
