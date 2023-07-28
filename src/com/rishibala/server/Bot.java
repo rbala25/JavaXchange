@@ -64,6 +64,8 @@ class Bot implements Runnable{
                 } else if (recievedMessage.contains("close")) {
                     out.println("close");
                     out.flush();
+                } else if(recievedMessage.contains("quitting")) {
+                    System.out.println("Bot " + botId + " disconnected.");
                 } else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
@@ -126,16 +128,21 @@ class Bot implements Runnable{
     }
 
     private void checkMatches() {
+//        System.out.println(botId + " bot id");
         List<Set<Order>> matchedOrders = orderBook.matchOrders();
 
         if(matchedOrders.size() == 0) {
             out.println("No match");
         }
 
+        System.out.println(botId + " " + matchedOrders);
         for(Set<Order> matches : matchedOrders) {
+            boolean first = true;
             for(Order specificOrd : matches) {
-                if(specificOrd.botId() == botId) {
+//                System.out.println(specificOrd.botId() + " vs " + botId);
+                if((specificOrd.botId() == botId) && first) {
                     notifyBot(matches);
+                    first = false;
                 }
             }
         }
@@ -173,9 +180,48 @@ class Bot implements Runnable{
             user.updateStockAmt(sell.quantity() * -1);
         }
 
-        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-" + user.getStockAmt() + " shares.";
+        String str;
+        String alt;
+        if(bot1.type().equals(Order.Type.SELL)) {
+            str = String.format("Selling %d shares to Client #%d for $%f", bot2.quantity(), bot2.botId(), bot2.price());
+            alt = String.format("Buying %d shares from Client #%d for $%f", bot1.quantity(), bot1.botId(), bot2.price());
+        } else {
+            str = String.format("Buying %d shares from Client #%d for $%f", bot1.quantity(), bot2.botId(), bot1.price());
+            alt = String.format("Selling %d shares to Client #%d for $%f", bot2.quantity(), bot1.botId(), bot1.price());
+        }
+//        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-You have " + user.getStockAmt() + " shares.";
         out.println(str);
 
-        orderBook.removeOrder(bot1.orderId());
+        boolean worked = orderBook.removeOrder(bot1.orderId());
+        boolean workedTwo = orderBook.removeOrder(bot2.orderId());
+
+        getBot(bot2.botId()).justSendMessage(alt, bot2, bot1);
+
+        if(worked && workedTwo) {
+            System.out.println("Successfully handled matching orders");
+        } else {
+            System.out.println("Failure to handle matching orders");
+        }
+        out.flush();
+    }
+
+    private void justSendMessage(String str, Order order, Order alt) {
+        if(order.type().equals(Order.Type.BUY)) {
+            user.updateStockAmt(alt.quantity());
+        } else {
+            user.updateStockAmt(order.quantity() * -1);
+        }
+
+        out.println(str);
+        out.flush();
+    }
+
+    private static Bot getBot(int botId) {
+        for(Bot bot : bots) {
+            if(bot.botId == botId) {
+                return bot;
+            }
+        }
+        return null;
     }
 }

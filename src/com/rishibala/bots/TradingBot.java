@@ -52,19 +52,19 @@ public class TradingBot {
                        Quit (q)
                         """);
                 System.out.println("-".repeat(20));
+                boolean repeat = false;
 
                 do {
                     try {
                         String serverMessage;
                         if (in.ready()) {
                             if ((serverMessage = in.readLine()) != null) {
-                                if (serverMessage.contains("Found match")) {
+                                if (serverMessage.contains("Client #")) {
                                     System.out.println();
-                                    String[] args1 = serverMessage.split("-");
-                                    for (String arg : args1) {
-                                        System.out.println(arg);
-                                    }
-                                    System.out.println();
+                                    System.out.println(serverMessage);
+                                    out.flush();
+                                    repeat = true;
+                                    break;
                                 }
                             }
                         }
@@ -79,7 +79,12 @@ public class TradingBot {
 //                    }
                 } while (!(System.in.available() > 0));
 
+                if(repeat) {
+                    continue;
+                }
+
                 String choice = s.nextLine().substring(0, 1).toLowerCase();
+                out.flush();
 
                 if(choice.equals("o")) {
                     out.println("listedmatches");
@@ -173,18 +178,17 @@ public class TradingBot {
                     out.println("close");
                     out.flush();
                 } else if(choice.equals("q")) {
+                    out.println("quitting");
+                    out.flush();
                     break;
                 }
 
                 try {
                     String serverMessage;
                     if((serverMessage = in.readLine()) != null) {
-                        if(serverMessage.contains("Found match")) {
+                        if(serverMessage.contains("Client #")) {
                             System.out.println();
-                            String[] args1 = serverMessage.split("-");
-                            for(String arg : args1) {
-                                System.out.println(arg);
-                            }
+                            System.out.println(serverMessage);
                         }
                     }
                 } catch (IOException e) {

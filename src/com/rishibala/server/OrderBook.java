@@ -36,8 +36,9 @@ public class OrderBook {
         System.out.println("New Order: " + order);
     }
 
-    private void removeOrder(Order order) {
+    private boolean removeOrder(Order order) {
         if(order.type().equals(Order.Type.BUY)) {
+            System.out.println(order.botId());
             List<Order> vals = buyOrders.get(order.price());
             int index = -1;
             for(int i=0; i<vals.size(); i++) {
@@ -50,6 +51,7 @@ public class OrderBook {
             List<Order> copy = new ArrayList<>(vals);
             copy.remove(index);
             buyOrders.put(order.price(), copy);
+            return true;
 
 //            if(vals != null) {
 //                for(int i=0; i<vals.size(); i++) {
@@ -61,12 +63,22 @@ public class OrderBook {
 //            }
         } else {
             List<Order> vals = sellOrders.get(order.price());
+            int index = -1;
+            for(int i=0; i<vals.size(); i++) {
+                if(vals.get(i).equals(order)) {
+                    index = i;
+                    break;
+                }
+            }
 
-            sellOrders.put(order.price(), vals);
+            List<Order> copy = new ArrayList<>(vals);
+            copy.remove(index);
+            sellOrders.put(order.price(), copy);
+            return true;
         }
     }
 
-    void removeOrder(int orderId) {
+    boolean removeOrder(int orderId) {
         Order order = new Order();
         boolean check = false;
         for(List<Order> entries : buyOrders.values()) {
@@ -91,7 +103,9 @@ public class OrderBook {
 
         if(check) {
             removeOrder(order);
+            return true;
         }
+        return false;
     }
 
     public SortedMap<Double, List<Order>> getBuyOrders() {
