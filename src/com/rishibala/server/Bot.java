@@ -1,6 +1,9 @@
 package com.rishibala.server;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,10 +52,18 @@ class Bot implements Runnable{
                 } else if (recievedMessage.toLowerCase().contains("listedmatches")) {
                     StringBuilder builder = OrderBook.getListedMatches(botId, orderBook, false);
                     out.println(builder);
+                    out.flush();
                 } else if (recievedMessage.toLowerCase().contains("haveorder")) {
                     String orderNo = recievedMessage.split("-")[1];
                     boolean haveOrder = OrderBook.haveOrder(botId, orderBook, Integer.parseInt(orderNo));
                     out.println(haveOrder);
+                    out.flush();
+                } else if (recievedMessage.contains("userRequest")) {
+                    out.println(user);
+                    out.flush();;
+                } else if (recievedMessage.contains("close")) {
+                    out.println("close");
+                    out.flush();
                 } else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
@@ -78,8 +89,10 @@ class Bot implements Runnable{
         if(order.type().equals(Order.Type.SELL) && user.getStockAmt() >= order.quantity()) {
             String[] all = OrderBook.getListedMatches(botId, orderBook, true).toString().split("\n");
             List<Order> allOrdersOfUser = new ArrayList<>();
-            for(String al : all) {
-                allOrdersOfUser.add(Order.toOrder(al));
+            if(!(all[0].equals(""))) {
+                for(String al : all) {
+                    allOrdersOfUser.add(Order.toOrder(al));
+                }
             }
 
             int inEffect = 0;
@@ -114,6 +127,10 @@ class Bot implements Runnable{
 
     private void checkMatches() {
         List<Set<Order>> matchedOrders = orderBook.matchOrders();
+
+        if(matchedOrders.size() == 0) {
+            out.println("No match");
+        }
 
         for(Set<Order> matches : matchedOrders) {
             for(Order specificOrd : matches) {
@@ -150,17 +167,15 @@ class Bot implements Runnable{
             sell = p1;
         }
 
-        String builder1 = "Found match for Order: " + bot1.toString() +
-                "\n" + "Trading with Order: " + bot2.toString();
-
-        out.println(builder1);
-
         if(bot1.equals(buy)) {
             user.updateStockAmt(sell.quantity());
         } else {
             user.updateStockAmt(sell.quantity() * -1);
         }
 
-        orderBook.removeOrder(this.botId);
+        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-" + user.getStockAmt() + " shares.";
+        out.println(str);
+
+        orderBook.removeOrder(bot1.orderId());
     }
 }

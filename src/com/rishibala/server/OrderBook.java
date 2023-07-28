@@ -122,6 +122,7 @@ public class OrderBook {
             }
         }
 
+        System.out.println("Matches?: " + matches);
         return matches;
     }
 
@@ -151,7 +152,6 @@ public class OrderBook {
                 }
             }
         }
-
         return builder;
     }
 

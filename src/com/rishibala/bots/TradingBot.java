@@ -11,8 +11,6 @@ import java.util.Scanner;
 
 public class TradingBot {
 
-    private static int orders = 1;
-
     public static void main(String[] args) {
         try {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
@@ -54,6 +52,33 @@ public class TradingBot {
                        Quit (q)
                         """);
                 System.out.println("-".repeat(20));
+
+                do {
+                    try {
+                        String serverMessage;
+                        if (in.ready()) {
+                            if ((serverMessage = in.readLine()) != null) {
+                                if (serverMessage.contains("Found match")) {
+                                    System.out.println();
+                                    String[] args1 = serverMessage.split("-");
+                                    for (String arg : args1) {
+                                        System.out.println(arg);
+                                    }
+                                    System.out.println();
+                                }
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    //                    try {
+//                        Thread.sleep(100);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+                } while (!(System.in.available() > 0));
+
                 String choice = s.nextLine().substring(0, 1).toLowerCase();
 
                 if(choice.equals("o")) {
@@ -66,6 +91,8 @@ public class TradingBot {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    out.println("close");
+                    out.flush();
                 } else if (choice.equals("n")) {
                     String buySell = "";
                     do {
@@ -99,10 +126,8 @@ public class TradingBot {
                         }
                     }
 
-                    System.out.println("Order Number: " + orders);
-                    orders++;
                     out.println(botId + ", " + buySell + ", " + price + ", " + qty);
-
+                    out.flush();
                 } else if(choice.equals("c")) {
                     int order = 0;
                     while(!(order > 0)) {
@@ -130,22 +155,36 @@ public class TradingBot {
                     out.println("cancel," + order);
                     System.out.println("Cancelled Order " + order);
                     s.nextLine();
+                    out.println("close");
+                    out.flush();
                 } else if(choice.equals("p")) {
+                    out.println("userRequest");
+                    try {
+                        String serverMessage = in.readLine();
+                        if(serverMessage != null) {
+                            user = User.unString(serverMessage);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     System.out.println();
                     System.out.println(user.getStockAmt() + " shares.");
+                    out.println("close");
+                    out.flush();
                 } else if(choice.equals("q")) {
                     break;
                 }
 
                 try {
-                    String serverMessage = in.readLine();
-                    if(serverMessage != null) {
+                    String serverMessage;
+                    if((serverMessage = in.readLine()) != null) {
                         if(serverMessage.contains("Found match")) {
-                            System.out.println(serverMessage);
-                        } else if (serverMessage.contains("Trading with")) {
-                            System.out.println(serverMessage);
                             System.out.println();
-                            System.out.println(user.getStockAmt() + " shares.");
+                            String[] args1 = serverMessage.split("-");
+                            for(String arg : args1) {
+                                System.out.println(arg);
+                            }
                         }
                     }
                 } catch (IOException e) {
