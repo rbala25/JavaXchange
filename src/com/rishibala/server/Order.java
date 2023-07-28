@@ -2,7 +2,7 @@ package com.rishibala.server;
 
 record Order(int botId, Type type, double price, int quantity, int orderId) {
     enum Type {BUY, SELL};
-    private static int placeholder = 0;
+    private static int placeholder = 1;
 
     Order() {
         this(-1, null, 0, 0, placeholder++);
@@ -26,6 +26,11 @@ record Order(int botId, Type type, double price, int quantity, int orderId) {
 
         Type type = (args[1].equalsIgnoreCase("BUY")) ? Type.BUY : Type.SELL;
 
+        if(args.length == 5) {
+            return new Order(Integer.parseInt(args[0]), type, Double.parseDouble(args[2]),
+                    Integer.parseInt(args[3]), Integer.parseInt(args[4]));
+        }
+
         return new Order(Integer.parseInt(args[0]), type, Double.parseDouble(args[2]),
                 Integer.parseInt(args[3]));
     }
@@ -40,5 +45,9 @@ record Order(int botId, Type type, double price, int quantity, int orderId) {
     public boolean equals(Object obj) {
         Order order = (Order) obj;
         return (order.orderId == this.orderId);
+    }
+
+    public String cleanFormat() {
+        return String.format("Type: %s, Price: %f, Quantity: %o, OrderID: %o", type, price, quantity, orderId);
     }
 }

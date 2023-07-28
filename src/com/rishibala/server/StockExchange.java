@@ -33,6 +33,7 @@ public class StockExchange {
                 User user;
                 if(first) {
                     user = new User(botId, 100);
+                    first = false;
                 } else {
                     user = new User(botId, 0);
                 }
@@ -45,10 +46,6 @@ public class StockExchange {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static OrderBook getBook() {
-        return book;
     }
 
 //    public static boolean compareSockets(Socket socket1, Socket socket2) {

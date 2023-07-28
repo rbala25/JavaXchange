@@ -39,20 +39,24 @@ class Bot implements Runnable{
 
             String recievedMessage;
             while ((recievedMessage = in.readLine()) != null) {
-                if(recievedMessage.toLowerCase().contains("cancel")) {
+                if (recievedMessage.toLowerCase().contains("cancel")) {
                     String[] args = recievedMessage.split(",");
-                    for(int i=0; i<args.length; i++) {
-                        args[i] = args[i].trim();
-                    }
 
-                    int orderId = Integer.parseInt(args[1]);
+                    int orderId = Integer.parseInt(args[args.length - 1]);
                     orderBook.removeOrder(orderId);
+
+                } else if (recievedMessage.toLowerCase().contains("listedmatches")) {
+                    StringBuilder builder = OrderBook.getListedMatches(botId, orderBook, false);
+                    out.println(builder);
+                } else if (recievedMessage.toLowerCase().contains("haveorder")) {
+                    String orderNo = recievedMessage.split("-")[1];
+                    boolean haveOrder = OrderBook.haveOrder(botId, orderBook, Integer.parseInt(orderNo));
+                    out.println(haveOrder);
                 } else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
                 }
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

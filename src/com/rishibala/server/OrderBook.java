@@ -32,13 +32,24 @@ public class OrderBook {
         } else {
             ordersMap.put(order.price(), List.of(order));
         }
+
+        System.out.println("New Order: " + order);
     }
 
-    void removeOrder(Order order) {
+    private void removeOrder(Order order) {
         if(order.type().equals(Order.Type.BUY)) {
             List<Order> vals = buyOrders.get(order.price());
+            int index = -1;
+            for(int i=0; i<vals.size(); i++) {
+                if(vals.get(i).equals(order)) {
+                    index = i;
+                    break;
+                }
+            }
 
-           buyOrders.put(order.price(), vals);
+            List<Order> copy = new ArrayList<>(vals);
+            copy.remove(index);
+            buyOrders.put(order.price(), copy);
 
 //            if(vals != null) {
 //                for(int i=0; i<vals.size(); i++) {
@@ -114,20 +125,29 @@ public class OrderBook {
         return matches;
     }
 
-    public static StringBuilder getListedMatches(int botId, OrderBook book) {
+    public static StringBuilder getListedMatches(int botId, OrderBook book, boolean checker) {
+
         StringBuilder builder = new StringBuilder();
         for(List<Order> orders : book.getBuyOrders().values()) {
             for(Order order : orders) {
-                if(order.orderId() == botId) {
-                    builder.append(order).append("\n");
+                if(order.botId() == botId) {
+                    if(checker) {
+                        builder.append(order).append("\n");
+                    } else {
+                        builder.append(order.cleanFormat()).append("\n");
+                    }
                 }
             }
         }
 
         for(List<Order> orders : book.getSellOrders().values()) {
             for(Order order : orders) {
-                if(order.orderId() == botId) {
-                    builder.append(order).append("\n");
+                if(order.botId() == botId) {
+                    if(checker) {
+                        builder.append(order).append("\n");
+                    } else {
+                        builder.append(order.cleanFormat()).append("\n");
+                    }
                 }
             }
         }
@@ -136,11 +156,12 @@ public class OrderBook {
     }
 
     public static boolean haveOrder(int botId, OrderBook book, int orderId) {
-        String list = getListedMatches(botId, book).toString();
+        String list = getListedMatches(botId, book, true).toString();
         String[] matches = list.split("\n");
         List<Order> orders = new ArrayList<>();
         for(String match : matches) {
             orders.add(Order.toOrder(match));
+//            System.out.println("OrderId: " + Order.toOrder(match).orderId());
         }
 
         for(Order order : orders) {
@@ -151,4 +172,9 @@ public class OrderBook {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "buyOrders=" + buyOrders +
+                ", sellOrders=" + sellOrders;
+    }
 }
