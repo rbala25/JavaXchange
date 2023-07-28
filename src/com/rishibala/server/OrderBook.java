@@ -2,7 +2,7 @@ package com.rishibala.server;
 
 import java.util.*;
 
-class OrderBook {
+public class OrderBook {
     private final SortedMap<Double, List<Order>> buyOrders;
     private final SortedMap<Double, List<Order>> sellOrders;
 
@@ -83,11 +83,11 @@ class OrderBook {
         }
     }
 
-    SortedMap<Double, List<Order>> getBuyOrders() {
+    public SortedMap<Double, List<Order>> getBuyOrders() {
         return new TreeMap<>(buyOrders);
     }
 
-    SortedMap<Double, List<Order>> getSellOrders() {
+    public SortedMap<Double, List<Order>> getSellOrders() {
         return new TreeMap<>(sellOrders);
     }
 
@@ -113,4 +113,42 @@ class OrderBook {
 
         return matches;
     }
+
+    public static StringBuilder getListedMatches(int botId, OrderBook book) {
+        StringBuilder builder = new StringBuilder();
+        for(List<Order> orders : book.getBuyOrders().values()) {
+            for(Order order : orders) {
+                if(order.orderId() == botId) {
+                    builder.append(order).append("\n");
+                }
+            }
+        }
+
+        for(List<Order> orders : book.getSellOrders().values()) {
+            for(Order order : orders) {
+                if(order.orderId() == botId) {
+                    builder.append(order).append("\n");
+                }
+            }
+        }
+
+        return builder;
+    }
+
+    public static boolean haveOrder(int botId, OrderBook book, int orderId) {
+        String list = getListedMatches(botId, book).toString();
+        String[] matches = list.split("\n");
+        List<Order> orders = new ArrayList<>();
+        for(String match : matches) {
+            orders.add(Order.toOrder(match));
+        }
+
+        for(Order order : orders) {
+            if(order.orderId() == orderId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

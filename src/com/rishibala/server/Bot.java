@@ -33,7 +33,7 @@ class Bot implements Runnable{
     public void run() {
         try {
             bots.add(this);
-            System.out.println(botId + " connected");
+            System.out.println("Bot " + botId + " connected");
 
             String recievedMessage;
             while ((recievedMessage = in.readLine()) != null) {
@@ -46,7 +46,7 @@ class Bot implements Runnable{
                     int orderId = Integer.parseInt(args[1]);
                     orderBook.removeOrder(orderId);
                 } else {
-                    Order order = Order.unserialize(recievedMessage, socket);
+                    Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
                 }
             }

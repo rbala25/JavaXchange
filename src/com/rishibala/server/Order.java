@@ -1,10 +1,8 @@
 package com.rishibala.server;
 
-import java.net.Socket;
-
 record Order(int botId, Type type, double price, int quantity, int orderId) {
     enum Type {BUY, SELL};
-    private static int placeholder = 1;
+    private static int placeholder = 0;
 
     Order() {
         this(-1, null, 0, 0, placeholder++);
@@ -26,17 +24,17 @@ record Order(int botId, Type type, double price, int quantity, int orderId) {
             args[i] = args[i].trim();
         }
 
-        Type type = (args[1].equals("BUY")) ? Type.BUY : Type.SELL;
+        Type type = (args[1].equalsIgnoreCase("BUY")) ? Type.BUY : Type.SELL;
 
         return new Order(Integer.parseInt(args[0]), type, Double.parseDouble(args[2]),
                 Integer.parseInt(args[3]));
     }
 
-    static Order unserialize(String str, Socket socket) {
-        String updated = StockExchange.getId(socket) + ", " + str;
-
-        return toOrder(updated);
-    }
+//    static Order unserialize(String str, Socket socket) {
+//        String updated = StockExchange.getId(socket) + ", " + str;
+//
+//        return toOrder(updated);
+//    }
 
     @Override
     public boolean equals(Object obj) {
