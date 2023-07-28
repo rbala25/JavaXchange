@@ -45,6 +45,7 @@ class Bot implements Runnable{
                     int orderId = Integer.parseInt(args[args.length - 1]);
                     orderBook.removeOrder(orderId);
 
+                    System.out.println("Cancelled Order " + orderId);
                 } else if (recievedMessage.toLowerCase().contains("listedmatches")) {
                     StringBuilder builder = OrderBook.getListedMatches(botId, orderBook, false);
                     out.println(builder);
@@ -72,20 +73,38 @@ class Bot implements Runnable{
     }
 
     private void handleOrder(Order order) {
+        boolean check = false;
 
         if(order.type().equals(Order.Type.SELL) && user.getStockAmt() >= order.quantity()) {
-            orderBook.addOrder(order);
+            String[] all = OrderBook.getListedMatches(botId, orderBook, true).toString().split("\n");
+            List<Order> allOrdersOfUser = new ArrayList<>();
+            for(String al : all) {
+                allOrdersOfUser.add(Order.toOrder(al));
+            }
+
+            int inEffect = 0;
+            for(Order ord : allOrdersOfUser) {
+                if(ord.type() == Order.Type.SELL) {
+                    inEffect += ord.quantity();
+                }
+            }
+
+            if((user.getStockAmt() - inEffect) >= order.quantity()) {
+                orderBook.addOrder(order);
+                check = true;
+            }
         } else if (order.type().equals(Order.Type.BUY)) {
             if(order.quantity() > 100) {
                 orderBook.addOrder(new Order(order.botId(), order.type(), order.price(), 100, order.orderId()));
+                check = true;
             } else {
                 orderBook.addOrder(order);
+                check = true;
             }
-        } else {
-            if(user.getStockAmt() < order.quantity()) {
-                orderBook.addOrder(new Order(order.botId(), order.type(),
-                        order.price(), user.getStockAmt(), order.orderId()));
-            }
+        }
+        if((user.getStockAmt() < order.quantity()) && (!check)) {
+            orderBook.addOrder(new Order(order.botId(), order.type(),
+                    order.price(), user.getStockAmt(), order.orderId()));
         }
 
         for(Bot bot : bots) {
@@ -131,8 +150,10 @@ class Bot implements Runnable{
             sell = p1;
         }
 
-        out.println("Found match for Order: " + bot1.toString());
-        out.println("Trading with Order: " + bot2.toString());
+        String builder1 = "Found match for Order: " + bot1.toString() +
+                "\n" + "Trading with Order: " + bot2.toString();
+
+        out.println(builder1);
 
         if(bot1.equals(buy)) {
             user.updateStockAmt(sell.quantity());

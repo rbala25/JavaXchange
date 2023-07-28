@@ -136,6 +136,21 @@ public class TradingBot {
                 } else if(choice.equals("q")) {
                     break;
                 }
+
+                try {
+                    String serverMessage = in.readLine();
+                    if(serverMessage != null) {
+                        if(serverMessage.contains("Found match")) {
+                            System.out.println(serverMessage);
+                        } else if (serverMessage.contains("Trading with")) {
+                            System.out.println(serverMessage);
+                            System.out.println();
+                            System.out.println(user.getStockAmt() + " shares.");
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         } catch(IOException e) {
             e.printStackTrace();
