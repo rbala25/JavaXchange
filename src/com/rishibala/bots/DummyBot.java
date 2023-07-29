@@ -14,7 +14,7 @@ import java.util.*;
 public class DummyBot {
 
     private static final String API_KEY = config.API_KEY;
-    private static final Map<LocalDate, Double> data = parseTempData();
+    private static final Map<LocalDate, Double> data = parseConstantData();
 
     public static void main(String[] args) {
         for (LocalDate date : data.keySet()) {
@@ -103,11 +103,11 @@ public class DummyBot {
         return data;
     }
 
-    private static Map<LocalDate, Double> parseTempData() {
+    private static Map<LocalDate, Double> parseConstantData() {
         Map<LocalDate, Double> data = new TreeMap<>();
 
         try {
-            File file = new File("tempData.txt");
+            File file = new File("src/tempData.txt");
             Scanner s = new Scanner(file);
             String jsonResponse = s.nextLine();
 

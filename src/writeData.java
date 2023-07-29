@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-class writeTempData {
+class writeData {
     private static final String API_KEY = config.API_KEY;
 
     public static void main(String[] args) {
