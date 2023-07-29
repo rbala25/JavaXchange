@@ -40,6 +40,7 @@ public class TradingBot {
                 return;
             }
 
+            label:
             while(true) {
                 System.out.println();
                 System.out.println("-".repeat(30));
@@ -91,109 +92,114 @@ public class TradingBot {
                 }
                 out.flush();
 
-                if(choice.equals("o")) {
-                    out.println("listedmatches");
-                    try {
-                        String serverMessage = in.readLine();
-                        if(serverMessage != null) {
-                            System.out.println(serverMessage);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    out.println("close");
-                    out.flush();
-                } else if (choice.equals("n")) {
-                    String buySell = "";
-                    do {
-                        System.out.print("Buy or sell: ");
-                        buySell = s.nextLine().substring(0, 1).toLowerCase();
-
-                    } while (!buySell.equalsIgnoreCase("b") && !buySell.equalsIgnoreCase("s"));
-
-                    if(buySell.equalsIgnoreCase("b")) buySell = "BUY";
-                    if(buySell.equalsIgnoreCase("s")) buySell = "SELL";
-
-                    double price = 0;
-                    while(!(price > 0)) {
-                        System.out.print("Price: ");
+                switch (choice) {
+                    case "o":
+                        out.println("listedmatches");
                         try {
-                            double temp = Double.parseDouble(s.nextLine());
-                            price = temp;
-                        } catch (NumberFormatException e) {
+                            String serverMessage = in.readLine();
+                            if (serverMessage != null) {
+                                System.out.println(serverMessage);
+                            }
+                        } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    }
+                        out.println("close");
+                        out.flush();
+                        break;
+                    case "n":
+                        String buySell = "";
+                        do {
+                            System.out.print("Buy or sell: ");
+                            buySell = s.nextLine().substring(0, 1).toLowerCase();
 
-                    int qty = 0;
-                    while(!(qty > 0)) {
-                        System.out.print("Quantity: ");
-                        try {
-                            int temp = Integer.parseInt(s.nextLine());
-                            qty = temp;
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                        } while (!buySell.equalsIgnoreCase("b") && !buySell.equalsIgnoreCase("s"));
 
-                    out.println(botId + ", " + buySell + ", " + price + ", " + qty);
-                    out.flush();
-                } else if(choice.equals("c")) {
-                    int order = 0;
-                    while(!(order > 0)) {
-                        System.out.print("Order Number: ");
-                        try {
-                            order = s.nextInt();
-                            out.println("haveOrder-" + order);
-                            boolean check = false;
+                        if (buySell.equalsIgnoreCase("b")) buySell = "BUY";
+                        if (buySell.equalsIgnoreCase("s")) buySell = "SELL";
+
+                        double price = 0;
+                        while (!(price > 0)) {
+                            System.out.print("Price: ");
                             try {
-                                String serverMessage = in.readLine();
-                                if(serverMessage.equalsIgnoreCase("true")) {
-                                    check = true;
-                                }
-                            } catch (IOException e) {
+                                double temp = Double.parseDouble(s.nextLine());
+                                price = temp;
+                            } catch (NumberFormatException e) {
                                 e.printStackTrace();
                             }
-                            if(!check) {
-                                order = 0;
+                        }
+
+                        int qty = 0;
+                        while (!(qty > 0)) {
+                            System.out.print("Quantity: ");
+                            try {
+                                int temp = Integer.parseInt(s.nextLine());
+                                qty = temp;
+                            } catch (NumberFormatException e) {
+                                e.printStackTrace();
                             }
-                        } catch (NumberFormatException e) {
+                        }
+
+                        out.println(botId + ", " + buySell + ", " + price + ", " + qty);
+                        out.flush();
+                        break;
+                    case "c":
+                        int order = 0;
+                        while (!(order > 0)) {
+                            System.out.print("Order Number: ");
+                            try {
+                                order = s.nextInt();
+                                out.println("haveOrder-" + order);
+                                boolean check = false;
+                                try {
+                                    String serverMessage = in.readLine();
+                                    if (serverMessage.equalsIgnoreCase("true")) {
+                                        check = true;
+                                    }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                if (!check) {
+                                    order = 0;
+                                }
+                            } catch (NumberFormatException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        out.println("cancel," + order);
+                        System.out.println("Cancelled Order " + order);
+                        s.nextLine();
+                        out.println("close");
+                        out.flush();
+                        break;
+                    case "p":
+                        out.println("userRequest");
+                        try {
+                            String serverMessage = in.readLine();
+                            if (serverMessage != null) {
+                                user = User.unString(serverMessage);
+                            }
+                        } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    }
-
-                    out.println("cancel," + order);
-                    System.out.println("Cancelled Order " + order);
-                    s.nextLine();
-                    out.println("close");
-                    out.flush();
-                } else if(choice.equals("p")) {
-                    out.println("userRequest");
-                    try {
-                        String serverMessage = in.readLine();
-                        if(serverMessage != null) {
-                            user = User.unString(serverMessage);
+                        System.out.println();
+                        System.out.println(user.getStockAmt() + " shares.");
+                        try {
+                            String serverMessage = in.readLine();
+                            if (serverMessage != null) {
+                                System.out.println(serverMessage);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println();
-                    System.out.println(user.getStockAmt() + " shares.");
-                    try {
-                        String serverMessage = in.readLine();
-                        if(serverMessage != null) {
-                            System.out.println(serverMessage);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
 
-                    out.println("close");
-                    out.flush();
-                } else if(choice.equals("q")) {
-                    out.println("quitting");
-                    out.flush();
-                    break;
+                        out.println("close");
+                        out.flush();
+                        break;
+                    case "q":
+                        out.println("quitting");
+                        out.flush();
+                        break label;
                 }
 
                 try {
