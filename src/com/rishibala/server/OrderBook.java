@@ -25,12 +25,12 @@ public class OrderBook {
             throw new IllegalArgumentException("Invalid order type: " + order.type());
         }
 
-        List<Order> vals = ordersMap.get(order.price());
+        List<Order> vals = ordersMap.get(order.pricePerQuantity());
         if(vals != null) {
             vals.add(order);
-            ordersMap.put(order.price(), vals);
+            ordersMap.put(order.pricePerQuantity(), vals);
         } else {
-            ordersMap.put(order.price(), List.of(order));
+            ordersMap.put(order.pricePerQuantity(), List.of(order));
         }
 
         System.out.println("New Order: " + order);
@@ -38,7 +38,7 @@ public class OrderBook {
 
     private boolean removeOrder(Order order) {
         if(order.type().equals(Order.Type.BUY)) {
-            List<Order> vals = buyOrders.get(order.price());
+            List<Order> vals = buyOrders.get(order.pricePerQuantity());
             int index = -1;
             for(int i=0; i<vals.size(); i++) {
                 if(vals.get(i).equals(order)) {
@@ -49,7 +49,7 @@ public class OrderBook {
 
             List<Order> copy = new ArrayList<>(vals);
             copy.remove(index);
-            buyOrders.put(order.price(), copy);
+            buyOrders.put(order.pricePerQuantity(), copy);
             return true;
 
 //            if(vals != null) {
@@ -61,7 +61,7 @@ public class OrderBook {
 //                }
 //            }
         } else {
-            List<Order> vals = sellOrders.get(order.price());
+            List<Order> vals = sellOrders.get(order.pricePerQuantity());
             int index = -1;
             for(int i=0; i<vals.size(); i++) {
                 if(vals.get(i).equals(order)) {
@@ -72,7 +72,7 @@ public class OrderBook {
 
             List<Order> copy = new ArrayList<>(vals);
             copy.remove(index);
-            sellOrders.put(order.price(), copy);
+            sellOrders.put(order.pricePerQuantity(), copy);
             return true;
         }
     }
@@ -124,10 +124,12 @@ public class OrderBook {
 
                 for(List<Order> buys1 : buys) {
                     for(Order buy : buys1) {
-                        if(buy.price() >= order.price()) {
-                            if(!matchGot) {
-                                matches.add(new HashSet<>(Set.of(order, buy)));
-                                matchGot = true;
+                        if(buy.pricePerQuantity() >= order.pricePerQuantity()) {
+                            if(order.quantity() >= buy.quantity()) {
+                                if(!matchGot) {
+                                    matches.add(new HashSet<>(Set.of(order, buy)));
+                                    matchGot = true;
+                                }
                             }
                         }
                     }
