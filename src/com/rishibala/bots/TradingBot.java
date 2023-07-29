@@ -83,7 +83,12 @@ public class TradingBot {
                     continue;
                 }
 
-                String choice = s.nextLine().substring(0, 1).toLowerCase();
+                String choice = "";
+                try {
+                    choice = s.nextLine().substring(0, 1).toLowerCase();
+                } catch (IndexOutOfBoundsException e) {
+                    continue;
+                }
                 out.flush();
 
                 if(choice.equals("o")) {
@@ -172,9 +177,17 @@ public class TradingBot {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                     System.out.println();
                     System.out.println(user.getStockAmt() + " shares.");
+                    try {
+                        String serverMessage = in.readLine();
+                        if(serverMessage != null) {
+                            System.out.println(serverMessage);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     out.println("close");
                     out.flush();
                 } else if(choice.equals("q")) {

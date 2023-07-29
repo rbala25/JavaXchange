@@ -60,6 +60,7 @@ class Bot implements Runnable{
                     out.flush();
                 } else if (recievedMessage.contains("userRequest")) {
                     out.println(user);
+                    out.println("Total Profit: " + user.getProfit());
                     out.flush();;
                 } else if (recievedMessage.contains("close")) {
                     out.println("close");
@@ -165,18 +166,20 @@ class Bot implements Runnable{
 
         if(bot1.type().equals(Order.Type.BUY)) {
             user.updateStockAmt(bot1.quantity());
+            user.updateProfit(bot1.price() * -1);
         } else {
             user.updateStockAmt(bot2.quantity() * -1);
+            user.updateProfit(bot2.price());
         }
 
         String str;
         String alt;
         if(bot1.type().equals(Order.Type.SELL)) {
-            str = String.format("Selling %d shares to Client #%d for $%f", bot2.quantity(), bot2.botId(), bot2.price());
-            alt = String.format("Buying %d shares from Client #%d for $%f", bot2.quantity(), bot1.botId(), bot2.price());
+            str = String.format("Selling %d shares to Client #%d for $%.2f", bot2.quantity(), bot2.botId(), bot2.price());
+            alt = String.format("Buying %d shares from Client #%d for $%.2f", bot2.quantity(), bot1.botId(), bot2.price());
         } else {
-            str = String.format("Buying %d shares from Client #%d for $%f", bot1.quantity(), bot2.botId(), bot1.price());
-            alt = String.format("Selling %d shares to Client #%d for $%f", bot1.quantity(), bot1.botId(), bot1.price());
+            str = String.format("Buying %d shares from Client #%d for $%.2f", bot1.quantity(), bot2.botId(), bot1.price());
+            alt = String.format("Selling %d shares to Client #%d for $%.2f", bot1.quantity(), bot1.botId(), bot1.price());
         }
 //        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-You have " + user.getStockAmt() + " shares.";
         out.println(str);
@@ -197,8 +200,10 @@ class Bot implements Runnable{
     private void justSendMessage(String str, Order order, Order alt) {
         if(order.type().equals(Order.Type.BUY)) {
             user.updateStockAmt(order.quantity());
+            user.updateProfit(order.price() * -1);
         } else {
             user.updateStockAmt(alt.quantity() * -1);
+            user.updateProfit(alt.price());
         }
 
         out.println(str);
