@@ -1,15 +1,19 @@
 package com.rishibala.server;
 
-record Order(int botId, Type type, double price, int quantity, int orderId) {
+record Order(int botId, Type type, double price, int quantity, int orderId, double pricePerQuantity) {
     enum Type {BUY, SELL};
     private static int placeholder = 1;
 
     Order() {
-        this(-1, null, 0, 0, placeholder++);
+        this(-1, null, 0, 0, placeholder++, 0);
     }
 
     Order(int botId, Type type, double price, int quantity) {
-        this(botId, type, price, quantity, placeholder++);
+        this(botId, type, price, quantity, placeholder++, (price/quantity));
+    }
+
+    Order(int botId, Type type, double price, int quantity, int orderId) {
+        this(botId, type, price, quantity, orderId, (price/quantity));
     }
 
     @Override
@@ -48,6 +52,6 @@ record Order(int botId, Type type, double price, int quantity, int orderId) {
     }
 
     public String cleanFormat() {
-        return String.format("Type: %s, Price: %f, Quantity: %o, OrderID: %o", type, price, quantity, orderId);
+        return String.format("Type: %s, Price: %.2f, Quantity: %d, OrderID: %o", type, price, quantity, orderId);
     }
 }

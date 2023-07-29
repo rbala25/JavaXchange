@@ -135,7 +135,6 @@ class Bot implements Runnable{
             out.println("No match");
         }
 
-        System.out.println(botId + " " + matchedOrders);
         for(Set<Order> matches : matchedOrders) {
             boolean first = true;
             for(Order specificOrd : matches) {
@@ -155,8 +154,6 @@ class Bot implements Runnable{
 
         Order bot1;
         Order bot2;
-        Order buy;
-        Order sell;
 
         if(p1.botId() == this.botId) {
             bot1 = p1;
@@ -166,28 +163,20 @@ class Bot implements Runnable{
             bot2 = p1;
         }
 
-        if(p1.type().equals(Order.Type.BUY)) {
-            buy = p1;
-            sell = p2;
+        if(bot1.type().equals(Order.Type.BUY)) {
+            user.updateStockAmt(bot1.quantity());
         } else {
-            buy = p2;
-            sell = p1;
-        }
-
-        if(bot1.equals(buy)) {
-            user.updateStockAmt(sell.quantity());
-        } else {
-            user.updateStockAmt(sell.quantity() * -1);
+            user.updateStockAmt(bot2.quantity() * -1);
         }
 
         String str;
         String alt;
         if(bot1.type().equals(Order.Type.SELL)) {
             str = String.format("Selling %d shares to Client #%d for $%f", bot2.quantity(), bot2.botId(), bot2.price());
-            alt = String.format("Buying %d shares from Client #%d for $%f", bot1.quantity(), bot1.botId(), bot2.price());
+            alt = String.format("Buying %d shares from Client #%d for $%f", bot2.quantity(), bot1.botId(), bot2.price());
         } else {
             str = String.format("Buying %d shares from Client #%d for $%f", bot1.quantity(), bot2.botId(), bot1.price());
-            alt = String.format("Selling %d shares to Client #%d for $%f", bot2.quantity(), bot1.botId(), bot1.price());
+            alt = String.format("Selling %d shares to Client #%d for $%f", bot1.quantity(), bot1.botId(), bot1.price());
         }
 //        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-You have " + user.getStockAmt() + " shares.";
         out.println(str);
@@ -207,9 +196,9 @@ class Bot implements Runnable{
 
     private void justSendMessage(String str, Order order, Order alt) {
         if(order.type().equals(Order.Type.BUY)) {
-            user.updateStockAmt(alt.quantity());
+            user.updateStockAmt(order.quantity());
         } else {
-            user.updateStockAmt(order.quantity() * -1);
+            user.updateStockAmt(alt.quantity() * -1);
         }
 
         out.println(str);

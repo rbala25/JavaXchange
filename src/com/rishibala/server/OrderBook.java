@@ -7,8 +7,8 @@ public class OrderBook {
     private final SortedMap<Double, List<Order>> sellOrders;
 
     OrderBook() {
-        buyOrders = new TreeMap<>();
-        sellOrders = new TreeMap<>();
+        buyOrders = new TreeMap<>(Comparator.reverseOrder());
+        sellOrders = new TreeMap<>(Comparator.reverseOrder());
     }
 
     void addOrder(Order order) {
@@ -38,7 +38,6 @@ public class OrderBook {
 
     private boolean removeOrder(Order order) {
         if(order.type().equals(Order.Type.BUY)) {
-            System.out.println(order.botId());
             List<Order> vals = buyOrders.get(order.price());
             int index = -1;
             for(int i=0; i<vals.size(); i++) {
@@ -136,7 +135,6 @@ public class OrderBook {
             }
         }
 
-        System.out.println("Matches?: " + matches);
         return matches;
     }
 
