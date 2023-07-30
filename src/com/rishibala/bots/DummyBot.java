@@ -35,7 +35,7 @@ public class DummyBot {
                 LocalDateTime key = (LocalDateTime) keys[i];
 
                 try {
-                    TimeUnit.MILLISECONDS.sleep(100);
+                    TimeUnit.MILLISECONDS.sleep(10);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -53,8 +53,6 @@ public class DummyBot {
         } catch(IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
     private static Map<LocalDateTime, Double> getData() {
