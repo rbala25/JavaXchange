@@ -27,17 +27,22 @@ public class OrderBook {
 
         List<Order> vals = ordersMap.get(order.pricePerQuantity());
         if(vals != null) {
+            ArrayList<Order> replacement = new ArrayList<>(vals);
             try {
-                vals.add(order);
+                replacement.add(order);
             } catch (UnsupportedOperationException e) {
-                System.out.println(order);
+                System.out.println("VALS: " + vals);
+                System.out.println("REPLACEMENT: " + replacement);
+                System.out.println("ERROR: " + order);
             }
-            ordersMap.put(order.pricePerQuantity(), vals);
+            ordersMap.put(order.pricePerQuantity(), replacement);
         } else {
             ordersMap.put(order.pricePerQuantity(), List.of(order));
         }
 
-        System.out.println("New Order: " + order);
+        if(order.botId() != 0) {
+            System.out.println("New Order: " + order);
+        }
     }
 
     private boolean removeOrder(Order order) {
@@ -131,8 +136,10 @@ public class OrderBook {
                         if(buy.pricePerQuantity() >= order.pricePerQuantity()) {
                             if(order.quantity() >= buy.quantity()) {
                                 if(!matchGot) {
-                                    matches.add(new HashSet<>(Set.of(order, buy)));
-                                    matchGot = true;
+                                    if(buy.botId() != order.botId()) {
+                                        matches.add(new HashSet<>(Set.of(order, buy)));
+                                        matchGot = true;
+                                    }
                                 }
                             }
                         }

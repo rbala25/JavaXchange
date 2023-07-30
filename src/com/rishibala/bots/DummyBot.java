@@ -23,6 +23,8 @@ public class DummyBot {
 //            System.out.println(date + ": " + price);
 //         }
 
+        System.out.println("Size: " + data.size());
+
         try {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
