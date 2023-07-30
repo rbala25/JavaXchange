@@ -23,7 +23,8 @@ public class MarketMakingBot {
 //            System.out.println(date + ": " + price);
 //         }
 
-        System.out.println("Size: " + data.size());
+        int size = data.size();
+        System.out.println("Size: " + size);
 
         try {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
@@ -47,11 +48,11 @@ public class MarketMakingBot {
                 int quantity = random.nextInt(1, 75);
                 int quantity2 = random.nextInt(1, 75);
 
-
 //                out.println("checkerTrueListed");
 
-                out.println("0, " + "BUY" + ", " + (price - 1.5) + ", " + quantity);
-                out.println("0, " + "SELL" + ", " + (price + 1.5) + ", " + quantity2);
+                //1.1938 is 1/50th of the difference in calculateMetrics.java
+                out.println("0, " + "BUY" + ", " + (price - 1.1938) + ", " + quantity);
+                out.println("0, " + "SELL" + ", " + (price + 1.1938) + ", " + quantity2);
 
                 out.println("close");
                 out.flush();
@@ -130,7 +131,6 @@ public class MarketMakingBot {
     }
 
     private static Map<LocalDateTime, Double> parseConstantData() {
-        int counter = 0;
         Map<LocalDateTime, Double> data = new TreeMap<>();
 
         try {
