@@ -47,9 +47,14 @@ public class MarketMakingBot {
                 int quantity = random.nextInt(1, 75);
                 int quantity2 = random.nextInt(1, 75);
 
+
+//                out.println("checkerTrueListed");
+
                 out.println("0, " + "BUY" + ", " + (price - 1.5) + ", " + quantity);
                 out.println("0, " + "SELL" + ", " + (price + 1.5) + ", " + quantity2);
 
+                out.println("close");
+                out.flush();
             }
 
 

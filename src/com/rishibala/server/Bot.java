@@ -17,6 +17,7 @@ class Bot implements Runnable{
     private PrintWriter out;
     private BufferedReader in;
     private static final List<Bot> bots = new ArrayList<>();
+    private boolean bot0checker = true;
 
     Bot(Socket socket, int botId, OrderBook orderBook, User user) {
         this.socket = socket;
@@ -67,6 +68,10 @@ class Bot implements Runnable{
                     out.flush();
                 } else if(recievedMessage.contains("quitting")) {
                     System.out.println("Bot " + botId + " disconnected.");
+                } else if(recievedMessage.equals("checkerTrueListed")) {
+                    StringBuilder builder = OrderBook.getListedMatches(0, orderBook, true);
+                    System.out.println(builder.toString().split("\n").length);
+                    out.flush();
                 } else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
@@ -89,19 +94,23 @@ class Bot implements Runnable{
     private void handleOrder(Order order) {
 
         if(order.botId() == 0) {
-            String[] all = OrderBook.getListedMatches(botId, orderBook, true).toString().split("\n");
+            if(bot0checker) {
+                String[] all = OrderBook.getListedMatches(0, orderBook, true).toString().split("\n");
+//                System.out.println(Arrays.toString(all));
 
-            List<Order> allOrdersOfUser = new ArrayList<>();
-            if(!(all[0].equals(""))) {
-                for(String al : all) {
-                    allOrdersOfUser.add(Order.toOrder(al));
+                List<Order> allOrdersOfUser = new ArrayList<>();
+                if(!(all[0].equals(""))) {
+                    for(String al : all) {
+                        allOrdersOfUser.add(Order.toOrder(al));
+                    }
+                }
+
+                for(Order ord : allOrdersOfUser) {
+                    orderBook.removeOrder(ord.orderId());
                 }
             }
 
-            for(Order ord : allOrdersOfUser) {
-                orderBook.removeOrder(ord.orderId());
-            }
-
+            bot0checker = (bot0checker == true) ? false : true;
             orderBook.addOrder(order);
         } else {
             orderBook.addOrder(order);
@@ -152,7 +161,7 @@ class Bot implements Runnable{
             user.updateStockAmt(bot1.quantity());
             user.updateProfit(bot1.price() * -1);
         } else {
-            user.updateStockAmt(bot2.quantity() * -1); //can havenegative shares for short selling
+            user.updateStockAmt(bot2.quantity() * -1); //can have negative shares for short selling
             user.updateProfit(bot2.price());
         }
 
@@ -186,7 +195,7 @@ class Bot implements Runnable{
             user.updateStockAmt(order.quantity());
             user.updateProfit(order.price() * -1);
         } else {
-            user.updateStockAmt(alt.quantity() * -1); //can havenegative shares for short selling
+            user.updateStockAmt(alt.quantity() * -1); //can have negative shares for short selling
             user.updateProfit(alt.price());
         }
 
