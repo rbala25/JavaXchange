@@ -2,45 +2,66 @@ package com.rishibala.bots;
 
 import com.rishibala.config;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.Socket;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class DummyBot {
 
     private static final String API_KEY = config.API_KEY;
-    private static final Map<LocalDate, Double> data = parseConstantData();
 
     public static void main(String[] args) {
-        for (LocalDate date : data.keySet()) {
-            double price = data.get(date);
-            System.out.println(date + ": " + price);
-        }
+        Map<LocalDateTime, Double> data = parseConstantData();
+//        for (LocalDateTime date : data.keySet()) {
+//            double price = data.get(date);
+//            System.out.println(date + ": " + price);
+//         }
 
-//        try {
-//            Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
-//            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-//
-//
-//
-//        } catch(IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+            Map<LocalDateTime, Double> data1 = new TreeMap<>(data);
+            var keys = data1.keySet().toArray();
+
+            for(int i=0; i<keys.length; i++) {
+                LocalDateTime key = (LocalDateTime) keys[i];
+
+                try {
+                    TimeUnit.MILLISECONDS.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                Random random = new Random();
+                double price = data.get(key);
+                int quantity = random.nextInt(1, 75);
+                int quantity2 = random.nextInt(1, 75);
+
+                out.println("0, " + "BUY" + ", " + (price - 1.5) + ", " + quantity);
+                out.println("0, " + "SELL" + ", " + (price + 1.5) + ", " + quantity2);
+            }
+
+
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
 
 
     }
 
-    private static Map<LocalDate, Double> getData() {
+    private static Map<LocalDateTime, Double> getData() {
         String startDate = "2023-01-01";
         String endDate = "2023-06-30";
 
-        Map<LocalDate, Double> data = new TreeMap<>();
+        Map<LocalDateTime, Double> data = new TreeMap<>();
 
         try {
             String url = "https://api.twelvedata.com/time_series?symbol=AAPL" +
@@ -84,15 +105,14 @@ public class DummyBot {
                 String data1 = jsonResponse.substring(index, endIndex);
                 String[] dataItems = data1.split(",");
 
-//                System.out.println(Arrays.toString(dataItems));
-
                 String dateHalf = dataItems[0].substring(12, dataItems[0].lastIndexOf("\""));
-                LocalDate date = LocalDate.parse(dateHalf);
+                LocalDateTime dateTime = LocalDateTime.of(LocalDate.parse(dateHalf.substring(0, dateHalf.indexOf(" "))),
+                        LocalTime.parse(dateHalf.substring(dateHalf.indexOf(" ") + 1)));
 
                 String closeHalf = dataItems[4].substring(9, dataItems[4].lastIndexOf("\""));
                 double price = Double.parseDouble(closeHalf);
 
-                data.put(date, price);
+                data.put(dateTime, price);
 //                    closingIndex = jsonResponse.indexOf("\"close\":\"", endIndex);
 //                }
             }
@@ -103,11 +123,13 @@ public class DummyBot {
         return data;
     }
 
-    private static Map<LocalDate, Double> parseConstantData() {
-        Map<LocalDate, Double> data = new TreeMap<>();
+    private static Map<LocalDateTime, Double> parseConstantData() {
+        int counter = 0;
+        Map<LocalDateTime, Double> data = new TreeMap<>();
 
         try {
-            File file = new File("src/tempData.txt");
+
+            File file = new File("/Users/rishibala/IdeaProjects/StockExchange/src/data.txt");
             Scanner s = new Scanner(file);
             String jsonResponse = s.nextLine();
 
@@ -129,12 +151,13 @@ public class DummyBot {
                 String[] dataItems = data1.split(",");
 
                 String dateHalf = dataItems[0].substring(12, dataItems[0].lastIndexOf("\""));
-                LocalDate date = LocalDate.parse(dateHalf);
+                LocalDateTime dateTime = LocalDateTime.of(LocalDate.parse(dateHalf.substring(0, dateHalf.indexOf(" "))),
+                        LocalTime.parse(dateHalf.substring(dateHalf.indexOf(" ") + 1)));
 
                 String closeHalf = dataItems[4].substring(9, dataItems[4].lastIndexOf("\""));
                 double price = Double.parseDouble(closeHalf);
 
-                data.put(date, price);
+                data.put(dateTime, price);
             }
         } catch (IOException e) {
             e.printStackTrace();

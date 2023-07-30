@@ -27,7 +27,11 @@ public class OrderBook {
 
         List<Order> vals = ordersMap.get(order.pricePerQuantity());
         if(vals != null) {
-            vals.add(order);
+            try {
+                vals.add(order);
+            } catch (UnsupportedOperationException e) {
+                System.out.println(order);
+            }
             ordersMap.put(order.pricePerQuantity(), vals);
         } else {
             ordersMap.put(order.pricePerQuantity(), List.of(order));

@@ -9,14 +9,15 @@ class writeData {
 
     public static void main(String[] args) {
         try {
-            File myObj = new File("tempData.txt");
-            if (myObj.createNewFile()) {
-                System.out.println("File created: " + myObj.getName());
+            File file = new File("data.txt");
+            if (file.createNewFile()) {
+                System.out.println("File created: " + file.getName());
             } else {
-                System.out.println("File already exists.");
+                System.out.println("File alr exists.");
             }
 
-            FileWriter myWriter = new FileWriter("tempData.txt");
+            FileWriter myWriter = new FileWriter("data.txt");
+            myWriter.flush();
             myWriter.write(getData());
             myWriter.close();
             System.out.println("Successfully wrote to the file.");
@@ -26,13 +27,13 @@ class writeData {
         }
     }
     private static String getData() {
-        String startDate = "2023-01-01";
-        String endDate = "2023-06-30";
+        String startDate = "2022-07-01";
+        String endDate = "2023-07-01";
         String jsonReq = "";
 
         try {
             String url = "https://api.twelvedata.com/time_series?symbol=AAPL" +
-                    "&interval=1day" +
+                    "&interval=1min" +
                     "&start_date=" + startDate +
                     "&end_date=" + endDate +
                     "&apikey=" + API_KEY;
