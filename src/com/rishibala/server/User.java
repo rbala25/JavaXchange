@@ -37,11 +37,11 @@ public class User {
 
     @Override
     public String toString() {
-        return botId + "-" + stockAmt;
+        return botId + ":" + stockAmt;
     }
 
     public static User unString(String str) {
-        String[] args = str.split("-");
+        String[] args = str.split(":");
         return new User(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
     }
 }

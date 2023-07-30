@@ -60,8 +60,8 @@ class Bot implements Runnable{
                     out.flush();
                 } else if (recievedMessage.contains("userRequest")) {
                     out.println(user);
-                    out.println("Total Profit: " + user.getProfit());
-                    out.flush();;
+                    out.println("Total Balance: " + user.getProfit());
+                    out.flush();
                 } else if (recievedMessage.contains("close")) {
                     out.println("close");
                     out.flush();
@@ -87,10 +87,10 @@ class Bot implements Runnable{
     }
 
     private void handleOrder(Order order) {
-        boolean check = false;
 
-        if(order.type().equals(Order.Type.SELL) && user.getStockAmt() >= order.quantity()) {
+        if(order.botId() == 0) {
             String[] all = OrderBook.getListedMatches(botId, orderBook, true).toString().split("\n");
+
             List<Order> allOrdersOfUser = new ArrayList<>();
             if(!(all[0].equals(""))) {
                 for(String al : all) {
@@ -98,29 +98,13 @@ class Bot implements Runnable{
                 }
             }
 
-            int inEffect = 0;
             for(Order ord : allOrdersOfUser) {
-                if(ord.type() == Order.Type.SELL) {
-                    inEffect += ord.quantity();
-                }
+                orderBook.removeOrder(ord.orderId());
             }
 
-            if((user.getStockAmt() - inEffect) >= order.quantity()) {
-                orderBook.addOrder(order);
-                check = true;
-            }
-        } else if (order.type().equals(Order.Type.BUY)) {
-            if(order.quantity() > 100) {
-                orderBook.addOrder(new Order(order.botId(), order.type(), order.price(), 100, order.orderId()));
-                check = true;
-            } else {
-                orderBook.addOrder(order);
-                check = true;
-            }
-        }
-        if((user.getStockAmt() < order.quantity()) && (!check)) {
-            orderBook.addOrder(new Order(order.botId(), order.type(),
-                    order.price(), user.getStockAmt(), order.orderId()));
+            orderBook.addOrder(order);
+        } else {
+            orderBook.addOrder(order);
         }
 
         for(Bot bot : bots) {
@@ -168,7 +152,7 @@ class Bot implements Runnable{
             user.updateStockAmt(bot1.quantity());
             user.updateProfit(bot1.price() * -1);
         } else {
-            user.updateStockAmt(bot2.quantity() * -1);
+            user.updateStockAmt(bot2.quantity() * -1); //can havenegative shares for short selling
             user.updateProfit(bot2.price());
         }
 
@@ -187,7 +171,7 @@ class Bot implements Runnable{
         boolean worked = orderBook.removeOrder(bot1.orderId());
         boolean workedTwo = orderBook.removeOrder(bot2.orderId());
 
-        getBot(bot2.botId()).justSendMessage(alt, bot2, bot1);
+        getBot(bot2.botId()).notifyBot2(alt, bot2, bot1);
 
         if(worked && workedTwo) {
             System.out.println("Successfully handled matching orders");
@@ -197,12 +181,12 @@ class Bot implements Runnable{
         out.flush();
     }
 
-    private void justSendMessage(String str, Order order, Order alt) {
+    private void notifyBot2(String str, Order order, Order alt) {
         if(order.type().equals(Order.Type.BUY)) {
             user.updateStockAmt(order.quantity());
             user.updateProfit(order.price() * -1);
         } else {
-            user.updateStockAmt(alt.quantity() * -1);
+            user.updateStockAmt(alt.quantity() * -1); //can havenegative shares for short selling
             user.updateProfit(alt.price());
         }
 

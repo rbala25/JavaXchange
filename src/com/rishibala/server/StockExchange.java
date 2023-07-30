@@ -14,6 +14,7 @@ public class StockExchange {
 //    private static final List<Socket> sockets = new ArrayList<>();
 
     private static final OrderBook book = new OrderBook();
+    private static boolean second = false;
     private static boolean first = true;
 
     public static void main(String[] args) {
@@ -31,12 +32,17 @@ public class StockExchange {
                 bots.put(botId++, botSocket);
 
                 User user;
-                if(first) {
-                    user = new User(botId, 100);
-                    first = false;
-                } else {
-                    user = new User(botId, 0);
-                }
+//                if(!second && first) {
+//                    user = new User(botId, 0);
+//                    second = true;
+//                    first = false;
+//                } else if(second && !first) {
+//                    user = new User(botId, 100);
+//                    second = false;
+//                } else {
+//                    user = new User(botId, 0);
+//                }
+                 user = new User(botId, 0);
 
                 Thread botThread = new Thread(new Bot(botSocket, botId, book, user));
 //                threads.add(botThread);

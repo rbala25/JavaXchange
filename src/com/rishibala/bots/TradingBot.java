@@ -117,8 +117,8 @@ public class TradingBot {
                         if (buySell.equalsIgnoreCase("b")) buySell = "BUY";
                         if (buySell.equalsIgnoreCase("s")) buySell = "SELL";
 
-                        double price = 0;
-                        while (!(price > 0)) {
+                        double price = -1;
+                        while (!(price >= 0)) {
                             System.out.print("Price: ");
                             try {
                                 double temp = Double.parseDouble(s.nextLine());
