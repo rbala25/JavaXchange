@@ -202,4 +202,54 @@ public class OrderBook {
         return "buyOrders=" + buyOrders +
                 ", sellOrders=" + sellOrders;
     }
+
+    public StringBuilder serialize() {
+        StringBuilder builder = new StringBuilder();
+
+        for(double key : buyOrders.keySet()) {
+            builder.append(key).append(":");
+            for(Order order : buyOrders.get(key)) {
+                builder.append(order).append("-");
+            }
+            builder.replace(builder.length() - 1, builder.length() - 1, "");
+            builder.append("\n");
+        }
+
+        builder.append("~~~~~~~~~~~\n");
+
+        for(double key : sellOrders.keySet()) {
+            builder.append(key).append(":");
+            for(Order order : sellOrders.get(key)) {
+                builder.append(order).append("-");
+            }
+            builder.replace(builder.length() - 1, builder.length() - 1, "");
+            builder.append("\n");
+        }
+
+        return builder;
+    }
+
+    public static OrderBook unserialize(StringBuilder builder) {
+        OrderBook book = new OrderBook();
+
+        String[] buySell = builder.toString().split("~~~~~~~~~~~\n");
+        String[] buyLines = buySell[0].split("\n");
+        String[] sellLines = buySell[1].split("\n");
+
+        for(String line : buyLines) {
+            String[] parts = line.split(":");
+            Order order = Order.toOrder(parts[1]);
+
+            book.addOrder(order);
+        }
+
+        for(String line : sellLines) {
+            String[] parts = line.split(":");
+            Order order = Order.toOrder(parts[1]);
+
+            book.addOrder(order);
+        }
+
+        return book;
+    }
 }

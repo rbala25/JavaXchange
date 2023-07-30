@@ -12,7 +12,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class DummyBot {
+public class MarketMakingBot {
 
     private static final String API_KEY = config.API_KEY;
 
@@ -49,6 +49,7 @@ public class DummyBot {
 
                 out.println("0, " + "BUY" + ", " + (price - 1.5) + ", " + quantity);
                 out.println("0, " + "SELL" + ", " + (price + 1.5) + ", " + quantity2);
+
             }
 
 
