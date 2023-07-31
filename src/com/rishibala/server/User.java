@@ -11,6 +11,12 @@ public class User {
         this.profit = 0;
     }
 
+    User(int botId, int stockAmt, double profit) {
+        this.botId = botId;
+        this.stockAmt = stockAmt;
+        this.profit = profit;
+    }
+
     public User() {
         this(-1, 0);
     }
@@ -43,5 +49,14 @@ public class User {
     public static User unString(String str) {
         String[] args = str.split(":");
         return new User(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+    }
+
+    public static User unStringWithProfit(String str) {
+        String[] args = str.split(":");
+        return new User(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Double.parseDouble(args[2]));
+    }
+
+    public String serializeWithProfit() {
+        return botId + ":" + stockAmt + ":" + profit;
     }
 }

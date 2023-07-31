@@ -34,6 +34,9 @@ public class MarketMakingBot {
             Map<LocalDateTime, Double> data1 = new TreeMap<>(data);
             var keys = data1.keySet().toArray();
 
+            double lastSell = 0;
+            double lastBuy = 0;
+
             for(int i=0; i<keys.length; i++) {
                 LocalDateTime key = (LocalDateTime) keys[i];
 
@@ -43,21 +46,21 @@ public class MarketMakingBot {
                     e.printStackTrace();
                 }
 
-                Random random = new Random();
                 double price = data.get(key);
-                int quantity = random.nextInt(1, 75);
-                int quantity2 = random.nextInt(1, 75);
 
 //                out.println("checkerTrueListed");
 
-                //0.5969 is 1/100th of the difference in calculateMetrics.java
-                out.println("0, " + "BUY" + ", " + (price - 0.5969) + ", " + quantity);
-                out.println("0, " + "SELL" + ", " + (price + 0.5969) + ", " + quantity2);
+                //0.11554744394 is 1/10th of the Coefficient of Variation in calculateMetrics.java
+                out.println("0, " + "BUY" + ", " + (price - 0.11554744394) + ", 50");
+                out.println("0, " + "SELL" + ", " + (price + 0.11554744394) + ", 50");
 
                 out.println("close");
                 out.flush();
-            }
 
+                lastSell = price + 0.11554744394;
+                lastBuy = price - 0.11554744394;
+            }
+            out.println("MMBOT_OVER:" + lastBuy + ":" + lastSell);
 
         } catch(IOException e) {
             e.printStackTrace();

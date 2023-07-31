@@ -21,6 +21,7 @@ public class EWMABot {
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
+    private static OrderBook last;
 
     public static void main(String[] args) {
         int counter = 1;
@@ -44,14 +45,46 @@ public class EWMABot {
             }
 
             while(true) {
-                out.flush();
 
+                out.flush();
+                try {
+                    if(in.ready()) {
+                        String serverMessage = in.readLine();
+                        while(serverMessage != null) {
+                            if(serverMessage.contains("SIGNALOVER")) {
+                                String[] serverArgs = serverMessage.split(":");
+                                double lastBuy = Double.parseDouble(serverArgs[1]);
+                                double lastSell = Double.parseDouble(serverArgs[2]);
+                                int shares = user.getStockAmt();
+                                int tempProf = 0;
+
+                                if(shares < 0) { //for short selling, may not be implemented
+                                    for(int i=1; i<=(shares * -1); i++) {
+                                        tempProf -= lastBuy;
+                                    }
+                                } else if(shares > 0) {
+                                    for(int i=1; i<=shares; i++) {
+                                        tempProf += lastSell;
+                                    }
+                                }
+
+                                System.out.println("Bot " + user.getBotId());
+                                System.out.println("Total PNL: " + (user.getProfit() + tempProf));
+                            }
+                            serverMessage = in.readLine();
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                out.flush();
                 out.println("EWMAReReq");
                 try {
                     String serverMessage = in.readLine();
                     while(serverMessage != null) {
                         if(serverMessage.contains(":")) {
-                            user = User.unString(serverMessage);
+                            user = User.unStringWithProfit(serverMessage);
                             break;
                         }
                         serverMessage = in.readLine();
@@ -80,8 +113,10 @@ public class EWMABot {
                         if(serverMessage.contains("~")) {
                             try {
                                 book = OrderBook.unserialize(serverMessage);
+                                last = book;
                             } catch(ArrayIndexOutOfBoundsException e) {
-                                System.out.println("error");
+                                book = last;
+                                System.out.println("After order error");
                             }
                             break;
                         }
@@ -141,6 +176,10 @@ public class EWMABot {
                 }
                 for(List<Order> sells : book.getSellOrders().values()) {
                     for(Order order : sells) {
+                        if(order.price() < 100) {
+                            System.out.println("PROBLEM: " + order);
+                        }
+
                         currentSellPrice = order.price();
                         currentSellQty = order.quantity();
                         lastSell = order;
@@ -149,13 +188,13 @@ public class EWMABot {
                 }
 
                 if (currentSellPrice < ewmaValue) {
-                    if(!buyInit && !sellInit) {
+                    if(buyInit && sellInit) {
                         out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentBuyQty);
                     }
                 } else if (currentBuyPrice > ewmaValue && user.getStockAmt() > 0) {
-                    if(!buyInit && !sellInit) {
-                        if(user.getStockAmt() >= currentBuyPrice) {
+                    if(buyInit && sellInit) {
+                        if(user.getStockAmt() >= currentBuyQty) {
                             out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentSellQty);
                         } else {
@@ -178,7 +217,7 @@ public class EWMABot {
     }
 
     private static double calculateEWMA(List<Double> data) {
-        double alpha = 0.4;
+        double alpha = 0.2;
         if(data.size() > 0) {
             double ewma = data.get(0);
             for (int i = 1; i < data.size(); i++) {

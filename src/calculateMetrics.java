@@ -40,6 +40,23 @@ public class calculateMetrics {
         System.out.println(min);
         System.out.println(max);
 
+
+        //variance = 176.48421229791134
+        //sqrt = 13.284736064292408
+        //coefficient of variation = 1.1554744394862437
+
+        double sum1 = 0;
+        long counter = 0;
+        for(double dat : data.values()) {
+            sum1 += ((dat - 152.73744382989653) * (dat - 152.73744382989653));
+            counter++;
+        }
+
+        System.out.println(sum1);
+        System.out.println(sum1 / (counter - 1));
+        System.out.println("Sqrt: " + Math.sqrt((sum1 / (counter - 1))));
+        System.out.println("Coefficient of Variation: " + (sum1 / (counter - 1)) / 152.73744382989653);
+
     }
 
     private static Map<LocalDateTime, Double> parseConstantData() {

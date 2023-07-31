@@ -77,8 +77,16 @@ class Bot implements Runnable{
                     out.println(str);
                     out.flush();
                 } else if(recievedMessage.equals("EWMAReReq")) {
-                    out.println(user.toString());
+                    out.println(user.serializeWithProfit());
                     out.flush();
+                } else if(recievedMessage.contains("MMBOT_OVER")) {
+                    String[] args = recievedMessage.split(":");
+
+                    for(Bot bot : bots) {
+                        if(bot.botId != 1) {
+                            bot.out.println("SIGNALOVER:" + args[1] + ":" + args[2]);
+                        }
+                    }
                 } else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
@@ -131,10 +139,6 @@ class Bot implements Runnable{
     private void checkMatches() {
 //        System.out.println(botId + " bot id");
         List<Set<Order>> matchedOrders = orderBook.matchOrders();
-
-        if(matchedOrders.size() == 0) {
-            out.println("No match");
-        }
 
         for(Set<Order> matches : matchedOrders) {
             boolean first = true;
