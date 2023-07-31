@@ -73,7 +73,7 @@ class Bot implements Runnable{
                     System.out.println(builder.toString().split("\n").length);
                     out.flush();
                 } else if(recievedMessage.equals("bookReq")) {
-//                    System.out.println(orderBook.serialize());
+                    System.out.println(orderBook.serialize());
                     out.println(orderBook.serialize());
                     out.flush();
                 }else {
