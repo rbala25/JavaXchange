@@ -59,7 +59,7 @@ public class EWMABot {
                                 int shares = user.getStockAmt();
                                 int tempProf = 0;
 
-                                if(shares < 0) { //for short selling, may not be implemented
+                                if(shares < 0) { //for short selling
                                     for(int i=1; i<=(shares * -1); i++) {
                                         tempProf -= lastBuy;
                                     }
@@ -194,16 +194,18 @@ public class EWMABot {
                 if (currentSellPrice < ewmaValue) {
                     if(buyInit && sellInit) {
                         out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentBuyQty);
+                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                     }
-                } else if (currentBuyPrice > ewmaValue && user.getStockAmt() > 0) {
+                } else if (currentBuyPrice > ewmaValue) {
                     if(buyInit && sellInit) {
-                        if(user.getStockAmt() >= currentBuyQty) {
+                        if(user.getStockAmt() <= 0) {
                             out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentSellQty);
-                        } else {
-                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + user.getStockAmt());
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + user.getStockAmt());
+                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        }
+
+                        if(user.getStockAmt() >= 1) {
+                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                         }
                     }
                 }
