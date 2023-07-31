@@ -6,42 +6,46 @@ public class OrderBook {
     private final SortedMap<Double, List<Order>> buyOrders;
     private final SortedMap<Double, List<Order>> sellOrders;
 
-    OrderBook() {
+    public OrderBook() {
         buyOrders = new TreeMap<>(Comparator.reverseOrder());
         sellOrders = new TreeMap<>(Comparator.reverseOrder());
     }
 
     void addOrder(Order order) {
-        if(order.botId() == -1) {
-            return;
-        }
+        synchronized (buyOrders) {
+            synchronized (sellOrders) {
+                if(order.botId() == -1) {
+                    return;
+                }
 
-        SortedMap<Double, List<Order>> ordersMap;
-        if (order.type().equals(Order.Type.BUY)) {
-            ordersMap = buyOrders;
-        } else if (order.type().equals(Order.Type.SELL)) {
-            ordersMap = sellOrders;
-        } else {
-            throw new IllegalArgumentException("Invalid order type: " + order.type());
-        }
+                SortedMap<Double, List<Order>> ordersMap;
+                if (order.type().equals(Order.Type.BUY)) {
+                    ordersMap = buyOrders;
+                } else if (order.type().equals(Order.Type.SELL)) {
+                    ordersMap = sellOrders;
+                } else {
+                    throw new IllegalArgumentException("Invalid order type: " + order.type());
+                }
 
-        List<Order> vals = ordersMap.get(order.pricePerQuantity());
-        if(vals != null) {
-            ArrayList<Order> replacement = new ArrayList<>(vals);
-            try {
-                replacement.add(order);
-            } catch (UnsupportedOperationException e) {
-                System.out.println("VALS: " + vals);
-                System.out.println("REPLACEMENT: " + replacement);
-                System.out.println("ERROR: " + order);
+                List<Order> vals = ordersMap.get(order.pricePerQuantity());
+                if(vals != null) {
+                    ArrayList<Order> replacement = new ArrayList<>(vals);
+                    try {
+                        replacement.add(order);
+                    } catch (UnsupportedOperationException e) {
+                        System.out.println("VALS: " + vals);
+                        System.out.println("REPLACEMENT: " + replacement);
+                        System.out.println("ERROR: " + order);
+                    }
+                    ordersMap.put(order.pricePerQuantity(), replacement);
+                } else {;
+                    ordersMap.put(order.pricePerQuantity(), List.of(order));
+                }
+
+                if(order.botId() != 0) {
+                    System.out.println("New Order: " + order);
+                }
             }
-            ordersMap.put(order.pricePerQuantity(), replacement);
-        } else {
-            ordersMap.put(order.pricePerQuantity(), List.of(order));
-        }
-
-        if(order.botId() != 0) {
-            System.out.println("New Order: " + order);
         }
     }
 
@@ -58,7 +62,12 @@ public class OrderBook {
 
             List<Order> copy = new ArrayList<>(vals);
             copy.remove(index);
-            buyOrders.put(order.pricePerQuantity(), copy);
+
+            if(vals.size() > 1) {
+                buyOrders.put(order.pricePerQuantity(), copy);
+            } else {
+                buyOrders.remove(order.pricePerQuantity());
+            }
             return true;
 
 //            if(vals != null) {
@@ -81,39 +90,48 @@ public class OrderBook {
 
             List<Order> copy = new ArrayList<>(vals);
             copy.remove(index);
-            sellOrders.put(order.pricePerQuantity(), copy);
+
+            if(vals.size() > 1) {
+                sellOrders.put(order.pricePerQuantity(), copy);
+            } else {
+                sellOrders.remove(order.pricePerQuantity());
+            }
             return true;
         }
     }
 
     boolean removeOrder(int orderId) {
-        Order order = new Order();
-        boolean check = false;
-        for(List<Order> entries : buyOrders.values()) {
-            for(Order entry : entries) {
-                if(entry.orderId() == orderId) {
-                    check = true;
-                    order = entry;
-                }
-            }
-        }
-
-        if(!check) {
-            for(List<Order> entries : sellOrders.values()) {
-                for(Order entry : entries) {
-                    if(entry.orderId() == orderId) {
-                        check = true;
-                        order = entry;
+        synchronized (buyOrders) {
+            synchronized (sellOrders) {
+                Order order = new Order();
+                boolean check = false;
+                for(List<Order> entries : buyOrders.values()) {
+                    for(Order entry : entries) {
+                        if(entry.orderId() == orderId) {
+                            check = true;
+                            order = entry;
+                        }
                     }
                 }
+
+                if(!check) {
+                    for(List<Order> entries : sellOrders.values()) {
+                        for(Order entry : entries) {
+                            if(entry.orderId() == orderId) {
+                                check = true;
+                                order = entry;
+                            }
+                        }
+                    }
+                }
+
+                if(check) {
+                    removeOrder(order);
+                    return true;
+                }
+                return false;
             }
         }
-
-        if(check) {
-            removeOrder(order);
-            return true;
-        }
-        return false;
     }
 
     public SortedMap<Double, List<Order>> getBuyOrders() {
@@ -204,43 +222,59 @@ public class OrderBook {
     }
 
     public StringBuilder serialize() {
-        StringBuilder builder = new StringBuilder();
+        synchronized (sellOrders) {
+            synchronized (buyOrders) {
+                StringBuilder builder = new StringBuilder();
 
-        for(double key : buyOrders.keySet()) {
-            builder.append(key).append(":");
-            for(Order order : buyOrders.get(key)) {
-                builder.append(order).append("-");
+                for(double key : buyOrders.keySet()) {
+                    builder.append(key).append(":");
+                    for(Order order : buyOrders.get(key)) {
+                        builder.append(order).append("-");
+                    }
+                    builder.replace(builder.length() - 1, builder.length(), "");
+                    builder.append("\n");
+                }
+
+                builder.append("~~~~~~~~~~~\n");
+
+                for(double key : sellOrders.keySet()) {
+                    builder.append(key).append(":");
+                    for(Order order : sellOrders.get(key)) {
+                        builder.append(order).append("-");
+                    }
+                    builder.replace(builder.length() - 1, builder.length(), "");
+                    builder.append("\n");
+                }
+
+                return builder;
             }
-            builder.replace(builder.length() - 1, builder.length() - 1, "");
-            builder.append("\n");
         }
-
-        builder.append("~~~~~~~~~~~\n");
-
-        for(double key : sellOrders.keySet()) {
-            builder.append(key).append(":");
-            for(Order order : sellOrders.get(key)) {
-                builder.append(order).append("-");
-            }
-            builder.replace(builder.length() - 1, builder.length() - 1, "");
-            builder.append("\n");
-        }
-
-        return builder;
     }
 
-    public static OrderBook unserialize(StringBuilder builder) {
+    public static OrderBook unserialize(String str) {
+        StringBuilder builder = new StringBuilder(str);
+
+        if(builder.equals("\n~~~~~~~~~~~\n")) {
+            return new OrderBook();
+        }
+
         OrderBook book = new OrderBook();
 
         String[] buySell = builder.toString().split("~~~~~~~~~~~\n");
         String[] buyLines = buySell[0].split("\n");
-        String[] sellLines = buySell[1].split("\n");
-
+        String[] sellLines = null;
+        if(buySell.length > 1) {
+            sellLines = buySell[1].split("\n");
+        }
         for(String line : buyLines) {
             String[] parts = line.split(":");
             Order order = Order.toOrder(parts[1]);
 
             book.addOrder(order);
+        }
+
+        if(sellLines == null) {
+            return null;
         }
 
         for(String line : sellLines) {

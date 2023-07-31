@@ -38,7 +38,7 @@ public class MarketMakingBot {
                 LocalDateTime key = (LocalDateTime) keys[i];
 
                 try {
-                    TimeUnit.MILLISECONDS.sleep(10);
+                    TimeUnit.MILLISECONDS.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

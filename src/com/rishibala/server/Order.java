@@ -1,6 +1,6 @@
 package com.rishibala.server;
 
-record Order(int botId, Type type, double price, int quantity, int orderId, double pricePerQuantity) {
+public record Order(int botId, Type type, double price, int quantity, int orderId, double pricePerQuantity) {
     enum Type {BUY, SELL};
     private static int placeholder = 1;
 

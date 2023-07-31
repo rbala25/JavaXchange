@@ -72,7 +72,11 @@ class Bot implements Runnable{
                     StringBuilder builder = OrderBook.getListedMatches(0, orderBook, true);
                     System.out.println(builder.toString().split("\n").length);
                     out.flush();
-                } else {
+                } else if(recievedMessage.equals("bookReq")) {
+//                    System.out.println(orderBook.serialize());
+                    out.println(orderBook.serialize());
+                    out.flush();
+                }else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
                 }
@@ -160,9 +164,31 @@ class Bot implements Runnable{
         if(bot1.type().equals(Order.Type.BUY)) {
             user.updateStockAmt(bot1.quantity());
             user.updateProfit(bot1.price() * -1);
+
+            if(bot2.quantity() > bot1.quantity()) {
+                orderBook.removeOrder(bot1.orderId());
+                orderBook.removeOrder(bot2.orderId());
+                int qty = bot2.quantity() - bot1.quantity();
+
+                orderBook.addOrder(new Order(bot2.botId(), Order.Type.SELL, (bot2.pricePerQuantity() * qty), qty, bot2.orderId()));
+            } else {
+                orderBook.removeOrder(bot1.orderId());
+                orderBook.removeOrder(bot2.orderId());
+            }
         } else {
             user.updateStockAmt(bot2.quantity() * -1); //can have negative shares for short selling
             user.updateProfit(bot2.price());
+
+            if(bot1.quantity() > bot2.quantity()) {
+                orderBook.removeOrder(bot1.orderId());
+                orderBook.removeOrder(bot2.orderId());
+                int qty = bot1.quantity() - bot2.quantity();
+
+                orderBook.addOrder(new Order(bot1.botId(), Order.Type.SELL, (bot1.pricePerQuantity() * qty), qty, bot1.orderId()));
+            } else {
+                orderBook.removeOrder(bot1.orderId());
+                orderBook.removeOrder(bot2.orderId());
+            }
         }
 
         String str;
@@ -177,16 +203,9 @@ class Bot implements Runnable{
 //        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-You have " + user.getStockAmt() + " shares.";
         out.println(str);
 
-        boolean worked = orderBook.removeOrder(bot1.orderId());
-        boolean workedTwo = orderBook.removeOrder(bot2.orderId());
-
         getBot(bot2.botId()).notifyBot2(alt, bot2, bot1);
 
-        if(worked && workedTwo) {
-            System.out.println("Successfully handled matching orders");
-        } else {
-            System.out.println("Failure to handle matching orders");
-        }
+        System.out.println("Successfully handled matching orders");
         out.flush();
     }
 
