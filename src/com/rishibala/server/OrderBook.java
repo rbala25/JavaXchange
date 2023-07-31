@@ -257,8 +257,9 @@ public class OrderBook {
         }
 
         OrderBook book = new OrderBook();
-
         String[] buySell = builder.toString().split("~");
+
+//        if(buySell.length == 2) {
         String[] buyLines = buySell[0].split("`");
         String[] sellLines = null;
 
@@ -285,5 +286,13 @@ public class OrderBook {
         }
 
         return book;
+//        } else {
+//            String[] parts = buySell[0].split(":");
+//            Order order = Order.toOrder(parts[1]);
+//
+//            book.addOrder(order);
+//
+//            return book;
+//        }
     }
 }

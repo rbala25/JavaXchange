@@ -72,9 +72,8 @@ class Bot implements Runnable{
                     StringBuilder builder = OrderBook.getListedMatches(0, orderBook, true);
                     System.out.println(builder.toString().split("\n").length);
                     out.flush();
-                } else if(recievedMessage.equals("bookReq")) {
-                    String str = orderBook.serialize().toString();
-                    out.println(str);
+                } else if(recievedMessage.contains("bookReq")) {
+                    out.println(orderBook.serialize().toString());
                     out.flush();
                 } else if(recievedMessage.equals("EWMAReReq")) {
                     out.println(user.serializeWithProfit());
