@@ -112,9 +112,9 @@ public class EWMABot {
                     }
                 }
 
-                System.out.println("Shares: " + user.getStockAmt());
+                System.out.println("Shares: " + user.getStockAmt() + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
                 System.out.println("PNL: " + user.getProfit());
-                System.out.println(ewmaValue);
+                System.out.println("EWMA: " + ewmaValue);
                 System.out.println();
             }
         } catch(IOException e) {

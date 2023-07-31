@@ -231,19 +231,17 @@ public class OrderBook {
                     for(Order order : buyOrders.get(key)) {
                         builder.append(order).append("-");
                     }
-                    builder.replace(builder.length() - 1, builder.length(), "");
-                    builder.append("\n");
+                    builder.replace(builder.length() - 1, builder.length(), "`");
                 }
 
-                builder.append("~~~~~~~~~~~\n");
+                builder.append("~");
 
                 for(double key : sellOrders.keySet()) {
                     builder.append(key).append(":");
                     for(Order order : sellOrders.get(key)) {
                         builder.append(order).append("-");
                     }
-                    builder.replace(builder.length() - 1, builder.length(), "");
-                    builder.append("\n");
+                    builder.replace(builder.length() - 1, builder.length(), "`");
                 }
 
                 return builder;
@@ -254,18 +252,20 @@ public class OrderBook {
     public static OrderBook unserialize(String str) {
         StringBuilder builder = new StringBuilder(str);
 
-        if(builder.equals("\n~~~~~~~~~~~\n")) {
+        if(builder.equals("~")) {
             return new OrderBook();
         }
 
         OrderBook book = new OrderBook();
 
-        String[] buySell = builder.toString().split("~~~~~~~~~~~\n");
-        String[] buyLines = buySell[0].split("\n");
+        String[] buySell = builder.toString().split("~");
+        String[] buyLines = buySell[0].split("`");
         String[] sellLines = null;
+
         if(buySell.length > 1) {
-            sellLines = buySell[1].split("\n");
+            sellLines = buySell[1].split("`");
         }
+
         for(String line : buyLines) {
             String[] parts = line.split(":");
             Order order = Order.toOrder(parts[1]);
@@ -274,7 +274,7 @@ public class OrderBook {
         }
 
         if(sellLines == null) {
-            return null;
+            return new OrderBook();
         }
 
         for(String line : sellLines) {
