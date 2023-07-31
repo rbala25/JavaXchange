@@ -22,6 +22,7 @@ public class EWMABot {
     private static Order lastSell;
     private static boolean firstCheck = true;
     private static OrderBook last;
+    private static boolean afterOrder = false;
 
     public static void main(String[] args) {
         int counter = 1;
@@ -117,6 +118,7 @@ public class EWMABot {
                             } catch(ArrayIndexOutOfBoundsException e) {
                                 book = last;
                                 System.out.println("After order error");
+                                afterOrder = true;
                             }
                             break;
                         }
@@ -166,24 +168,26 @@ public class EWMABot {
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
 
-                for(List<Order> buys : book.getBuyOrders().values()) {
-                    for(Order order : buys) {
-                        currentBuyPrice = order.price();
-                        currentBuyQty = order.quantity();
-                        lastBuy = order;
-                        buyInit = true;
-                    }
-                }
-                for(List<Order> sells : book.getSellOrders().values()) {
-                    for(Order order : sells) {
-                        if(order.price() < 100) {
-                            System.out.println("PROBLEM: " + order);
+                if(!afterOrder) {
+                    for(List<Order> buys : book.getBuyOrders().values()) {
+                        for(Order order : buys) {
+                            currentBuyPrice = order.price();
+                            currentBuyQty = order.quantity();
+                            lastBuy = order;
+                            buyInit = true;
                         }
+                    }
+                    for(List<Order> sells : book.getSellOrders().values()) {
+                        for(Order order : sells) {
+                            if(order.price() < 100) {
+                                System.out.println("PROBLEM: " + order);
+                            }
 
-                        currentSellPrice = order.price();
-                        currentSellQty = order.quantity();
-                        lastSell = order;
-                        sellInit = true;
+                            currentSellPrice = order.price();
+                            currentSellQty = order.quantity();
+                            lastSell = order;
+                            sellInit = true;
+                        }
                     }
                 }
 
@@ -209,6 +213,10 @@ public class EWMABot {
                 System.out.println("EWMA: " + ewmaValue + " " + counter);
                 System.out.println();
                 counter++;
+
+                buyInit = false;
+                sellInit = false;
+                afterOrder = false;
             }
         } catch(IOException e) {
             e.printStackTrace();

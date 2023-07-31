@@ -51,8 +51,8 @@ public class MarketMakingBot {
 //                out.println("checkerTrueListed");
 
                 //0.11554744394 is 1/10th of the Coefficient of Variation in calculateMetrics.java
-                out.println("0, " + "BUY" + ", " + (price - 0.11554744394) + ", 50");
-                out.println("0, " + "SELL" + ", " + (price + 0.11554744394) + ", 50");
+                out.println("0, " + "BUY" + ", " + (price - 0.11554744394) + ", 1");
+                out.println("0, " + "SELL" + ", " + (price + 0.11554744394) + ", 1");
 
                 out.println("close");
                 out.flush();
