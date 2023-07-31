@@ -17,7 +17,13 @@ public class EWMABot {
 
     private static List<Double> buyData = new ArrayList<>();
     private static List<Double> sellData = new ArrayList<>();
+
+    private static Order lastBuy;
+    private static Order lastSell;
+    private static boolean firstCheck = true;
+
     public static void main(String[] args) {
+        int counter = 1;
         int botId = 0;
         User user = new User();
 
@@ -39,14 +45,31 @@ public class EWMABot {
 
             while(true) {
                 out.flush();
-                while(in.ready()) {
-                    String str = in.readLine();
+
+                out.println("EWMAReReq");
+                try {
+                    String serverMessage = in.readLine();
+                    while(serverMessage != null) {
+                        if(serverMessage.contains(":")) {
+                            user = User.unString(serverMessage);
+                            break;
+                        }
+                        serverMessage = in.readLine();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+
+                out.flush();
 
                 try {
                     TimeUnit.MILLISECONDS.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                }
+
+                while(in.ready()) {
+                    String str = in.readLine();
                 }
 
                 out.println("bookReq");
@@ -80,9 +103,31 @@ public class EWMABot {
                     }
                 }
 
-                double ewmaValue = calculateEWMA(buyData);
-                double currentBuyPrice = Double.MIN_VALUE;
-                double currentSellPrice = Double.MAX_VALUE;
+                List<Double> means = new ArrayList<>();
+                for(int i=0; (i<buyData.size() && i<sellData.size()); i++) {
+                    double buyPrice = buyData.get(i);
+                    double sellPrice = sellData.get(i);
+
+                    means.add((buyPrice + sellPrice) / 2);
+                }
+
+
+                double ewmaValue = calculateEWMA(means);
+                boolean buyInit = false;
+                boolean sellInit = false;
+
+                double currentBuyPrice;
+                double currentSellPrice;
+
+                if(firstCheck) {
+                    currentBuyPrice = Double.MIN_VALUE;
+                    currentSellPrice = Double.MAX_VALUE;
+                    firstCheck = false;
+                } else {
+                    currentBuyPrice = lastBuy.price();
+                    currentSellPrice = lastSell.price();
+                }
+
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
 
@@ -90,32 +135,41 @@ public class EWMABot {
                     for(Order order : buys) {
                         currentBuyPrice = order.price();
                         currentBuyQty = order.quantity();
+                        lastBuy = order;
+                        buyInit = true;
                     }
                 }
                 for(List<Order> sells : book.getSellOrders().values()) {
                     for(Order order : sells) {
                         currentSellPrice = order.price();
                         currentSellQty = order.quantity();
+                        lastSell = order;
+                        sellInit = true;
                     }
                 }
 
                 if (currentSellPrice < ewmaValue) {
-                    out.println(botId + ", BUY" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                    System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                    if(!buyInit && !sellInit) {
+                        out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentBuyQty);
+                    }
                 } else if (currentBuyPrice > ewmaValue && user.getStockAmt() > 0) {
-                    if(user.getStockAmt() >= currentSellQty) {
-                        out.println(botId + ", SELL" + ", " + currentSellPrice + ", " + currentSellQty);
-                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentSellPrice + ", " + currentSellQty);
-                    } else {
-                        out.println(botId + ", SELL" + ", " + currentSellPrice + ", " + user.getStockAmt());
-                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentSellPrice + ", " + user.getStockAmt());
+                    if(!buyInit && !sellInit) {
+                        if(user.getStockAmt() >= currentBuyPrice) {
+                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentSellQty);
+                        } else {
+                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + user.getStockAmt());
+                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + user.getStockAmt());
+                        }
                     }
                 }
 
                 System.out.println("Shares: " + user.getStockAmt() + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
                 System.out.println("PNL: " + user.getProfit());
-                System.out.println("EWMA: " + ewmaValue);
+                System.out.println("EWMA: " + ewmaValue + " " + counter);
                 System.out.println();
+                counter++;
             }
         } catch(IOException e) {
             e.printStackTrace();
@@ -124,7 +178,7 @@ public class EWMABot {
     }
 
     private static double calculateEWMA(List<Double> data) {
-        double alpha = 0.2;
+        double alpha = 0.4;
         if(data.size() > 0) {
             double ewma = data.get(0);
             for (int i = 1; i < data.size(); i++) {

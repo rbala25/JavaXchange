@@ -76,7 +76,10 @@ class Bot implements Runnable{
                     String str = orderBook.serialize().toString();
                     out.println(str);
                     out.flush();
-                }else {
+                } else if(recievedMessage.equals("EWMAReReq")) {
+                    out.println(user.toString());
+                    out.flush();
+                } else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
                 }
@@ -146,6 +149,10 @@ class Bot implements Runnable{
     }
 
     private void notifyBot(Set<Order> match) {
+        if(botId == 1) {
+            return;
+        }
+
         Object[] match1 = match.toArray();
         Order p1 = (Order) match1[0];
         Order p2 = (Order) match1[1];
@@ -203,7 +210,9 @@ class Bot implements Runnable{
 //        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-You have " + user.getStockAmt() + " shares.";
         out.println(str);
 
-        getBot(bot2.botId()).notifyBot2(alt, bot2, bot1);
+        if(bot2.botId() != 0) {
+            getBot(bot2.botId()).notifyBot2(alt, bot2, bot1);
+        }
 
         System.out.println("Successfully handled matching orders");
         out.flush();

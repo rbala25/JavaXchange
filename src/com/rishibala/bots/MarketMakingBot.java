@@ -50,9 +50,9 @@ public class MarketMakingBot {
 
 //                out.println("checkerTrueListed");
 
-                //1.1938 is 1/50th of the difference in calculateMetrics.java
-                out.println("0, " + "BUY" + ", " + (price - 1.1938) + ", " + quantity);
-                out.println("0, " + "SELL" + ", " + (price + 1.1938) + ", " + quantity2);
+                //0.5969 is 1/100th of the difference in calculateMetrics.java
+                out.println("0, " + "BUY" + ", " + (price - 0.5969) + ", " + quantity);
+                out.println("0, " + "SELL" + ", " + (price + 0.5969) + ", " + quantity2);
 
                 out.println("close");
                 out.flush();

@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class TradingBot {
+public class ManualTradingBot {
 
     public static void main(String[] args) {
         try {
