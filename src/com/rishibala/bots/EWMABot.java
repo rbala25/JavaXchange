@@ -6,6 +6,7 @@ import com.rishibala.server.User;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -31,9 +32,18 @@ public class EWMABot {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
-            BufferedWriter out = new BufferedWriter(printWriter);
+//            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+            BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
 
+            BufferedReader reader = null;
+            String absolutePath = "";
+            try {
+                String path = "orderBook.txt";
+                absolutePath = Paths.get(path).toString();
+                reader = new BufferedReader(new FileReader(absolutePath));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
             try {
                 String serverMessage = in.readLine();
@@ -172,52 +182,7 @@ public class EWMABot {
 
                     String serverMessage = "";
 
-                    int counter1 = 0;
-                    boolean counter1b = false;
-
-                    if (printWriter.checkError()) {
-                        System.out.println("Error occurred");
-                    }
-
-                    while(!in.ready()) {
-                        try {
-                            TimeUnit.MILLISECONDS.sleep(1);
-                            if(in.ready()) {
-                                break;
-                            }
-                            counter1++;
-
-                            if(counter1 == 10) {
-                                System.out.println("counter1 = 10");
-
-                                out.write("bookReq");
-                                out.newLine();
-
-                                TimeUnit.SECONDS.sleep(1);
-
-                                if(in.ready()) {
-                                    break;
-                                }
-
-                                System.out.println("counter1 fail");
-                                book = last;
-                                serverMessage = book.serialize().toString();
-                                counter1b = true;
-                                afterOrder = true;
-                                break;
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    out.flush();
-
-                    if(!counter1b) {
-                        serverMessage = in.readLine();
-                    }
-
-                    while (!serverMessage.equals("")) {
+                    if((serverMessage = reader.readLine()) != null) {
                         if(serverMessage.contains("~")) {
                             try {
                                 book = OrderBook.unserialize(serverMessage);
@@ -227,10 +192,7 @@ public class EWMABot {
                                 System.out.println("After order error");
                                 afterOrder = true;
                             }
-                            break;
-                        }
-                        if(in.ready()) {
-                            serverMessage = in.readLine();
+                            reader = new BufferedReader(new FileReader(absolutePath));
                         }
                     }
                 } catch (IOException e) {
@@ -258,22 +220,12 @@ public class EWMABot {
                     means.add((buyPrice + sellPrice) / 2);
                 }
 
-
                 double ewmaValue = calculateEWMA(means);
                 boolean buyInit = false;
                 boolean sellInit = false;
 
                 double currentBuyPrice;
                 double currentSellPrice;
-
-                if(firstCheck) {
-                    currentBuyPrice = Double.MIN_VALUE;
-                    currentSellPrice = Double.MAX_VALUE;
-                    firstCheck = false;
-                } else {
-                    currentBuyPrice = lastBuy.price();
-                    currentSellPrice = lastSell.price();
-                }
 
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
@@ -299,6 +251,16 @@ public class EWMABot {
                             sellInit = true;
                         }
                     }
+                }
+
+
+                if(firstCheck) {
+                    currentBuyPrice = Double.MIN_VALUE;
+                    currentSellPrice = Double.MAX_VALUE;
+                    firstCheck = false;
+                } else {
+                    currentBuyPrice = lastBuy.price();
+                    currentSellPrice = lastSell.price();
                 }
 
                 double temp = currentBuyPrice;

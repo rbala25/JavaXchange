@@ -1,10 +1,8 @@
 package com.rishibala.server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +33,28 @@ class Bot implements Runnable{
 
     @Override
     public void run() {
+        BufferedWriter writer = null;
+        BufferedReader reader = null;
+        String absolutePath = "";
+
+        String path = "orderBook.txt";
+        absolutePath = Paths.get(path).toString();
+        File file = new File(absolutePath);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        try {
+            writer = new BufferedWriter(new FileWriter(absolutePath));
+            reader = new BufferedReader(new FileReader(absolutePath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         try {
             bots.add(this);
             System.out.println("Bot " + botId + " connected");
@@ -42,7 +62,9 @@ class Bot implements Runnable{
             out.println(botId + "," + user.toString());
 
             String recievedMessage;
+
             while ((recievedMessage = in.readLine()) != null) {
+
                 if (recievedMessage.toLowerCase().contains("cancel")) {
                     String[] args = recievedMessage.split(",");
 
@@ -73,11 +95,12 @@ class Bot implements Runnable{
                     System.out.println(builder.toString().split("\n").length);
                     out.flush();
                 } else if(recievedMessage.contains("bookReq")) {
-                    out.println(orderBook.serialize().toString());
-                    out.flush();
-                } else if(recievedMessage.equals("EWMAReReq")) {
-                    out.println(user.serializeWithProfit());
-                    out.flush();
+                    writer = new BufferedWriter(new FileWriter(absolutePath, false));
+                    writer.write(orderBook.serialize().toString());
+                    writer.newLine();
+                    writer.flush();
+
+                    System.out.println("AL " + reader.readLine());
                 } else if(recievedMessage.contains("MMBOT_OVER")) {
                     String[] args = recievedMessage.split(":");
 
@@ -100,6 +123,17 @@ class Bot implements Runnable{
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+
+            if (file.exists()) {
+                boolean deleted = file.delete();
+                if (deleted) {
+                    System.out.println("orderBook.txt deleted successfully.");
+                } else {
+                    System.out.println("Failed to delete orderBook.txt.");
+                }
+            } else {
+                System.out.println("orderBook.txt does not exist.");
             }
         }
 
