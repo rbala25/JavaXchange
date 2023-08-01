@@ -6,7 +6,6 @@ import com.rishibala.server.User;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -32,18 +31,9 @@ public class EWMABot {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-//            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
-            BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+            BufferedWriter out = new BufferedWriter(printWriter);
 
-            BufferedReader reader = null;
-            String absolutePath = "";
-            try {
-                String path = "orderBook.txt";
-                absolutePath = Paths.get(path).toString();
-                reader = new BufferedReader(new FileReader(absolutePath));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
 
             try {
                 String serverMessage = in.readLine();
@@ -182,7 +172,7 @@ public class EWMABot {
 
                     String serverMessage = "";
 
-                    if((serverMessage = reader.readLine()) != null) {
+                    if((serverMessage = in.readLine()) != null) {
                         if(serverMessage.contains("~")) {
                             try {
                                 book = OrderBook.unserialize(serverMessage);
@@ -192,14 +182,14 @@ public class EWMABot {
                                 System.out.println("After order error");
                                 afterOrder = true;
                             }
-                            reader = new BufferedReader(new FileReader(absolutePath));
+                        }
+                        if(in.ready()) {
+                            serverMessage = in.readLine();
                         }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                out.flush();
 
                 for(List<Order> buys : book.getBuyOrders().values()) {
                     for(Order order : buys) {
@@ -220,12 +210,22 @@ public class EWMABot {
                     means.add((buyPrice + sellPrice) / 2);
                 }
 
+
                 double ewmaValue = calculateEWMA(means);
                 boolean buyInit = false;
                 boolean sellInit = false;
 
                 double currentBuyPrice;
                 double currentSellPrice;
+
+                if(firstCheck) {
+                    currentBuyPrice = Double.MIN_VALUE;
+                    currentSellPrice = Double.MAX_VALUE;
+                    firstCheck = false;
+                } else {
+                    currentBuyPrice = lastBuy.price();
+                    currentSellPrice = lastSell.price();
+                }
 
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
@@ -251,16 +251,6 @@ public class EWMABot {
                             sellInit = true;
                         }
                     }
-                }
-
-
-                if(firstCheck) {
-                    currentBuyPrice = Double.MIN_VALUE;
-                    currentSellPrice = Double.MAX_VALUE;
-                    firstCheck = false;
-                } else {
-                    currentBuyPrice = lastBuy.price();
-                    currentSellPrice = lastSell.price();
                 }
 
                 double temp = currentBuyPrice;
