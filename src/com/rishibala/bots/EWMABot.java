@@ -181,7 +181,13 @@ public class EWMABot {
                             counter1++;
 
                             if(counter1 == 10) {
-                                TimeUnit.SECONDS.sleep(1);
+                                System.out.println("counter1 = 10");
+
+                                while(in.ready()) {
+                                    String str = in.readLine();
+                                }
+
+                                TimeUnit.SECONDS.sleep(3);
 
                                 out.write("bookReq");
                                 out.newLine();
@@ -189,7 +195,7 @@ public class EWMABot {
                                     break;
                                 }
 
-                                System.out.println("counter1 = 10");
+                                System.out.println("counter1 fail");
                                 book = last;
                                 serverMessage = book.serialize().toString();
                                 counter1b = true;
@@ -291,6 +297,11 @@ public class EWMABot {
                     }
                 }
 
+                double temp = currentBuyPrice;
+                if(shares > 50) {
+                    temp += 0.06;
+                }
+
                 if (currentSellPrice < ewmaValue) {
                     if(buyInit && sellInit) {
 //                        out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
@@ -302,7 +313,7 @@ public class EWMABot {
                         shares++;
                         pnl -= currentSellPrice;
                     }
-                } else if (currentBuyPrice > ewmaValue) { //allows short selling
+                } else if (temp > ewmaValue) { //allows short selling
                     if(buyInit && sellInit) {
                         if(user.getStockAmt() <= 0) {
 //                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
@@ -327,11 +338,10 @@ public class EWMABot {
                 System.out.println("Shares: " + shares + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
                 System.out.printf("PNL: $%.2f", pnl);
                 System.out.println("\nEWMA: " + ewmaValue + " " + counter);
+//                System.out.println("Potential current PNL: " + );
                 System.out.println();
                 counter++;
 
-                buyInit = false;
-                sellInit = false;
                 afterOrder = false;
             }
         } catch(IOException e) {
