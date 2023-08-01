@@ -31,7 +31,8 @@ public class EWMABot {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+            BufferedWriter out = new BufferedWriter(printWriter);
 
 
             try {
@@ -47,7 +48,7 @@ public class EWMABot {
 
             while(true) {
                 try {
-                    TimeUnit.MILLISECONDS.sleep(40);
+                    TimeUnit.MILLISECONDS.sleep(25);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -159,6 +160,9 @@ public class EWMABot {
 //                    e.printStackTrace();
 //                }
 
+//                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
+
                 OrderBook book = new OrderBook();
                 try {
 //                    out.println("bookReq");
@@ -171,8 +175,11 @@ public class EWMABot {
                     int counter1 = 0;
                     boolean counter1b = false;
 
-                    while(!in.ready()) {
+                    if (printWriter.checkError()) {
+                        System.out.println("Error occurred");
+                    }
 
+                    while(!in.ready()) {
                         try {
                             TimeUnit.MILLISECONDS.sleep(1);
                             if(in.ready()) {
@@ -183,14 +190,11 @@ public class EWMABot {
                             if(counter1 == 10) {
                                 System.out.println("counter1 = 10");
 
-                                while(in.ready()) {
-                                    String str = in.readLine();
-                                }
-
-                                TimeUnit.SECONDS.sleep(3);
-
                                 out.write("bookReq");
                                 out.newLine();
+
+                                TimeUnit.SECONDS.sleep(1);
+
                                 if(in.ready()) {
                                     break;
                                 }
