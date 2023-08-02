@@ -1,7 +1,5 @@
 package com.rishibala.server;
 
-import com.rishibala.bots.RateLimiter;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,7 +18,6 @@ class Bot implements Runnable{
     private BufferedReader in;
     private static final List<Bot> bots = new ArrayList<>();
     private boolean bot0checker = true;
-    RateLimiter rateLimiter = new RateLimiter(30, 30);
 
     Bot(Socket socket, int botId, OrderBook orderBook, User user) {
         this.socket = socket;
@@ -31,6 +28,7 @@ class Bot implements Runnable{
         try {
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//            in = new Scanner(socket.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -47,9 +45,6 @@ class Bot implements Runnable{
 
             String recievedMessage;
             while ((recievedMessage = in.readLine()) != null) {
-                if(botId != 1) {
-                    System.out.println(recievedMessage);
-                }
 
                 if (recievedMessage.toLowerCase().contains("cancel")) {
                     String[] args = recievedMessage.split(",");
@@ -81,12 +76,8 @@ class Bot implements Runnable{
                     System.out.println(builder.toString().split("\n").length);
                     out.flush();
                 } else if(recievedMessage.contains("bookReq")) {
-                    if(rateLimiter.allowRequest()) {
-                        out.println(orderBook.serialize().toString());
-                        out.flush();
-                    } else {
-                        out.println("PAUSE");
-                    }
+                    out.println(orderBook.serialize().toString());
+                    out.flush();
                 } else if(recievedMessage.contains("MMBOT_OVER")) {
                     String[] args = recievedMessage.split(":");
 
@@ -101,7 +92,7 @@ class Bot implements Runnable{
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+           e.printStackTrace();
         } finally {
             try {
                 in.close();

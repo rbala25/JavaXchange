@@ -24,6 +24,7 @@ public class EWMABot {
 
     public static void main(String[] args) {
         int counter = 1;
+        int oppCounter = 0;
         int botId = 0;
         User user = new User();
 
@@ -165,54 +166,47 @@ public class EWMABot {
 
                 OrderBook book = new OrderBook();
                 try {
+
+                    synchronized (out) {
 //                    out.println("bookReq");
-                    out.write("bookReq");
-                    out.newLine();
-                    out.flush();
+                        out.write("bookReq");
+                        out.newLine();
+                        out.flush();
 
-                    String serverMessage = "";
-                    int millis = 0;
-                    while(true) {
-                        if(in.ready()) {
-                            serverMessage = in.readLine();
+                        String serverMessage = "";
+                        int millis = 0;
+                        while (true) {
 
-                            if(serverMessage != null) {
-                                if(serverMessage.contains("~")) {
-                                    try {
-                                        book = OrderBook.unserialize(serverMessage);
-                                        last = book;
-                                    } catch(ArrayIndexOutOfBoundsException e) {
-                                        book = last;
-                                        System.out.println("After order error");
-                                        afterOrder = true;
+                            if (in.ready()) {
+                                serverMessage = in.readLine();
+
+                                if (serverMessage != null) {
+                                    if (serverMessage.contains("~")) {
+                                        try {
+                                            book = OrderBook.unserialize(serverMessage);
+                                            last = book;
+                                        } catch (ArrayIndexOutOfBoundsException e) {
+                                            book = last;
+                                            System.out.println("After order error");
+                                            afterOrder = true;
+                                        }
+                                        break;
                                     }
-                                    break;
-                                } else if(serverMessage.equals("PAUSE")) {
-                                    try {
-                                        TimeUnit.MILLISECONDS.sleep(600);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                    out.write("bookReq");
-                                    out.newLine();
-                                    out.flush();
-                                    continue;
                                 }
-                             }
-                        } else {
-                            try {
-                                millis += 2;
-                                TimeUnit.MILLISECONDS.sleep(2);
-                            } catch(InterruptedException e) {
-                                e.printStackTrace();
+                            } else {
+                                try {
+                                    millis += 2;
+                                    TimeUnit.MILLISECONDS.sleep(2);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
                             }
-                        }
 
-                        if(millis == 10) {
-                            System.out.println("millis = 10");
-                            millis = 0;
-                            book = last;
-                            break;
+                            if (millis == 10) {
+                                System.out.println("millis = 10");
+                                book = last;
+                                break;
+                            }
                         }
                     }
                 } catch (IOException e) {
