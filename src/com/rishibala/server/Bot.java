@@ -8,9 +8,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 
 class Bot implements Runnable{
-    private final Socket socket;
+    private Socket socket;
     private final int botId;
     private final OrderBook orderBook;
     private final User user;
@@ -18,6 +19,7 @@ class Bot implements Runnable{
     private BufferedReader in;
     private static final List<Bot> bots = new ArrayList<>();
     private boolean bot0checker = true;
+    private final Semaphore semaphore = new Semaphore(0);
 
     Bot(Socket socket, int botId, OrderBook orderBook, User user) {
         this.socket = socket;
@@ -33,6 +35,7 @@ class Bot implements Runnable{
         }
     }
 
+
     @Override
     public void run() {
         try {
@@ -43,6 +46,15 @@ class Bot implements Runnable{
 
             String recievedMessage;
             while ((recievedMessage = in.readLine()) != null) {
+                try {
+                    semaphore.acquire();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if(botId != 1) {
+                    System.out.println(recievedMessage);
+                }
+
                 if (recievedMessage.toLowerCase().contains("cancel")) {
                     String[] args = recievedMessage.split(",");
 
@@ -75,6 +87,8 @@ class Bot implements Runnable{
                 } else if(recievedMessage.contains("bookReq")) {
                     out.println(orderBook.serialize().toString());
                     out.flush();
+                    semaphore.release();
+
                 } else if(recievedMessage.contains("MMBOT_OVER")) {
                     String[] args = recievedMessage.split(":");
 
@@ -86,6 +100,7 @@ class Bot implements Runnable{
                 } else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
+                    semaphore.release();
                 }
             }
         } catch (IOException e) {
