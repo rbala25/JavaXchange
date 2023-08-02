@@ -31,8 +31,7 @@ public class EWMABot {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
-            BufferedWriter out = new BufferedWriter(printWriter);
+            BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
 
 
             try {
@@ -48,6 +47,7 @@ public class EWMABot {
 
             while(true) {
                 try {
+//                    Thread.sleep(25);
                     TimeUnit.MILLISECONDS.sleep(25);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -75,6 +75,7 @@ public class EWMABot {
 
                                 System.out.println("Bot " + user.getBotId());
                                 System.out.printf("Total pnl: $%.2f", pnl);
+                                break;
                             }
                             if(in.ready()) {
                                 serverMessage = in.readLine();
@@ -171,20 +172,38 @@ public class EWMABot {
                     out.flush();
 
                     String serverMessage = "";
-
-                    if((serverMessage = in.readLine()) != null) {
-                        if(serverMessage.contains("~")) {
-                            try {
-                                book = OrderBook.unserialize(serverMessage);
-                                last = book;
-                            } catch(ArrayIndexOutOfBoundsException e) {
-                                book = last;
-                                System.out.println("After order error");
-                                afterOrder = true;
-                            }
-                        }
+                    int millis = 0;
+                    while(true) {
                         if(in.ready()) {
                             serverMessage = in.readLine();
+
+                            if(serverMessage != null) {
+                                if(serverMessage.contains("~")) {
+                                    try {
+                                        book = OrderBook.unserialize(serverMessage);
+                                        last = book;
+                                    } catch(ArrayIndexOutOfBoundsException e) {
+                                        book = last;
+                                        System.out.println("After order error");
+                                        afterOrder = true;
+                                    }
+                                    break;
+                                }
+                            }
+                        } else {
+                            try {
+                                millis += 2;
+                                TimeUnit.MILLISECONDS.sleep(2);
+                            } catch(InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        if(millis == 10) {
+                            System.out.println("millis = 10");
+                            millis = 0;
+                            book = last;
+                            break;
                         }
                     }
                 } catch (IOException e) {
