@@ -37,6 +37,7 @@ class Bot implements Runnable{
 
     @Override
     public void run() {
+
         try {
             bots.add(this);
             System.out.println("Bot " + botId + " connected");
