@@ -98,6 +98,16 @@ class Bot implements Runnable{
                         }
                     }
                 } else {
+                    if(botId != 1) {
+                        StringBuilder builder = OrderBook.getListedMatches(botId, orderBook, true);
+                        String[] args = builder.toString().split("\n");
+                        if(args.length > 1) {
+                            for(String arg : args) {
+                                orderBook.removeOrder(Order.toOrder(arg).orderId());
+                            }
+                        }
+                    }
+
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
                 }
