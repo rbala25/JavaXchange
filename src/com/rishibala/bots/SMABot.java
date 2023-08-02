@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SMABot {
+    //Simple moving average calculations
     private static List<Double> periodBuy = new ArrayList<>();
     private static List<Double> periodSell = new ArrayList<>();
     private static Order lastBuy;

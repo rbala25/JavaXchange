@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class EWMABot {
+    //Estimated weighted moving average calculations
 
     private static List<Double> buyData = new ArrayList<>();
     private static List<Double> sellData = new ArrayList<>();

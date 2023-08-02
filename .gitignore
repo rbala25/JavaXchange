@@ -32,3 +32,4 @@ bin/
 src/com/rishibala/config.java
 .idea
 StockExchange.iml
+*.class
