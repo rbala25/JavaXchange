@@ -33,7 +33,6 @@ public class EWMABot {
 //            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
 
-
             try {
                 String serverMessage = in.readLine();
                 if(serverMessage != null) {
@@ -188,8 +187,18 @@ public class EWMABot {
                                         afterOrder = true;
                                     }
                                     break;
+                                } else if(serverMessage.equals("PAUSE")) {
+                                    try {
+                                        TimeUnit.MILLISECONDS.sleep(600);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    out.write("bookReq");
+                                    out.newLine();
+                                    out.flush();
+                                    continue;
                                 }
-                            }
+                             }
                         } else {
                             try {
                                 millis += 2;

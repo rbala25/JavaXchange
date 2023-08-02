@@ -1,5 +1,7 @@
 package com.rishibala.server;
 
+import com.rishibala.bots.RateLimiter;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,7 +10,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
 
 class Bot implements Runnable{
     private Socket socket;
@@ -19,7 +20,7 @@ class Bot implements Runnable{
     private BufferedReader in;
     private static final List<Bot> bots = new ArrayList<>();
     private boolean bot0checker = true;
-    private final Semaphore semaphore = new Semaphore(0);
+    RateLimiter rateLimiter = new RateLimiter(30, 30);
 
     Bot(Socket socket, int botId, OrderBook orderBook, User user) {
         this.socket = socket;
@@ -46,11 +47,6 @@ class Bot implements Runnable{
 
             String recievedMessage;
             while ((recievedMessage = in.readLine()) != null) {
-                try {
-                    semaphore.acquire();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 if(botId != 1) {
                     System.out.println(recievedMessage);
                 }
@@ -85,10 +81,12 @@ class Bot implements Runnable{
                     System.out.println(builder.toString().split("\n").length);
                     out.flush();
                 } else if(recievedMessage.contains("bookReq")) {
-                    out.println(orderBook.serialize().toString());
-                    out.flush();
-                    semaphore.release();
-
+                    if(rateLimiter.allowRequest()) {
+                        out.println(orderBook.serialize().toString());
+                        out.flush();
+                    } else {
+                        out.println("PAUSE");
+                    }
                 } else if(recievedMessage.contains("MMBOT_OVER")) {
                     String[] args = recievedMessage.split(":");
 
@@ -100,7 +98,6 @@ class Bot implements Runnable{
                 } else {
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
-                    semaphore.release();
                 }
             }
         } catch (IOException e) {
