@@ -1,9 +1,6 @@
 package com.rishibala.server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +11,7 @@ class Bot implements Runnable{
     private final int botId;
     private final OrderBook orderBook;
     private final User user;
-    private PrintWriter out;
+    private BufferedWriter out;
     private BufferedReader in;
     private static final List<Bot> bots = new ArrayList<>();
     private boolean bot0checker = true;
@@ -26,7 +23,7 @@ class Bot implements Runnable{
         this.user = user;
 
         try {
-            out = new PrintWriter(socket.getOutputStream(), true);
+            out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //            in = new Scanner(socket.getInputStream());
         } catch (IOException e) {
@@ -34,15 +31,18 @@ class Bot implements Runnable{
         }
     }
 
-
     @Override
     public void run() {
+
+        int counter = 1;
 
         try {
             bots.add(this);
             System.out.println("Bot " + botId + " connected");
 
-            out.println(botId + "," + user.toString());
+           out.write(botId + "," + user.toString());
+           out.newLine();
+           out.flush();
 
             String recievedMessage;
             while ((recievedMessage = in.readLine()) != null) {
@@ -56,35 +56,45 @@ class Bot implements Runnable{
                     System.out.println("Cancelled Order " + orderId);
                 } else if (recievedMessage.toLowerCase().contains("listedmatches")) {
                     StringBuilder builder = OrderBook.getListedMatches(botId, orderBook, false);
-                    out.println(builder);
+                   out.write(String.valueOf(builder));
+                    out.newLine();
                     out.flush();
                 } else if (recievedMessage.toLowerCase().contains("haveorder")) {
                     String orderNo = recievedMessage.split("-")[1];
                     boolean haveOrder = OrderBook.haveOrder(botId, orderBook, Integer.parseInt(orderNo));
-                    out.println(haveOrder);
+                   out.write(String.valueOf(haveOrder));
+                    out.newLine();
                     out.flush();
                 } else if (recievedMessage.contains("userRequest")) {
-                    out.println(user);
-                    out.println("Total Balance: " + user.getProfit());
+                   out.write(String.valueOf(user));
+                    out.newLine();
+                    out.flush();
+                   out.write("Total Balance: " + user.getProfit());
+                    out.newLine();
                     out.flush();
                 } else if (recievedMessage.contains("close")) {
-                    out.println("close");
+                   out.write("close");
+                    out.newLine();
                     out.flush();
                 } else if(recievedMessage.contains("quitting")) {
                     System.out.println("Bot " + botId + " disconnected.");
                 } else if(recievedMessage.equals("checkerTrueListed")) {
                     StringBuilder builder = OrderBook.getListedMatches(0, orderBook, true);
                     System.out.println(builder.toString().split("\n").length);
-                    out.flush();
                 } else if(recievedMessage.contains("bookReq")) {
-                    out.println(orderBook.serialize().toString());
+//                    System.out.println("Counter: " + counter);
+//                    counter++;
+                   out.write(orderBook.serialize().toString());
+                    out.newLine();
                     out.flush();
                 } else if(recievedMessage.contains("MMBOT_OVER")) {
                     String[] args = recievedMessage.split(":");
 
                     for(Bot bot : bots) {
                         if(bot.botId != 1) {
-                            bot.out.println("SIGNALOVER:" + args[1] + ":" + args[2]);
+                            bot.out.write("SIGNALOVER:" + args[1] + ":" + args[2]);
+                            bot.out.newLine();
+                            bot.out.flush();
                         }
                     }
                 } else {
@@ -212,14 +222,19 @@ class Bot implements Runnable{
             alt = String.format("Selling %d shares to Client #%d for $%.2f", bot1.quantity(), bot1.botId(), bot1.price());
         }
 //        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-You have " + user.getStockAmt() + " shares.";
-        out.println(str);
+     try {
+         out.write(str);
+         out.newLine();
+         out.flush();
+     } catch (IOException e) {
+         e.printStackTrace();
+     }
 
         if(bot2.botId() != 0) {
             getBot(bot2.botId()).notifyBot2(alt, bot2, bot1);
         }
 
         System.out.println("Successfully handled matching orders");
-        out.flush();
     }
 
     private void notifyBot2(String str, Order order, Order alt) {
@@ -231,8 +246,13 @@ class Bot implements Runnable{
             user.updateProfit(alt.price());
         }
 
-        out.println(str);
-        out.flush();
+        try {
+            out.write(str);
+            out.newLine();
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static Bot getBot(int botId) {

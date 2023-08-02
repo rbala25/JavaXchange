@@ -10,10 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class EWMABot {
-
-    private static List<Double> buyData = new ArrayList<>();
-    private static List<Double> sellData = new ArrayList<>();
+public class SMABot {
+    private static List<Double> periodBuy = new ArrayList<>();
+    private static List<Double> periodSell = new ArrayList<>();
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
@@ -31,7 +30,6 @@ public class EWMABot {
         try {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
 
             try {
@@ -100,75 +98,9 @@ public class EWMABot {
                     String str = in.readLine();
                 }
 
-//                out.println("EWMAReReq");
-//                out.flush();
-//                try {
-//
-//                    String serverMessage = "";
-//                    int counter3 = 0;
-//                    boolean counter3b = false;
-//
-//                    while(!in.ready()) {
-//                        try {
-//                            TimeUnit.MILLISECONDS.sleep(1);
-//                            if(in.ready()) {
-//                                break;
-//                            }
-//                            counter3++;
-//
-//                            if(counter3 == 10) {
-//                                System.out.println("counter 3 = 10");
-//                                counter3b = true;
-//                                break;
-//                            }
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//
-//                    if(!counter3b) {
-//                        serverMessage = in.readLine();
-//                    }
-//
-//                    while(serverMessage != "") {
-//                        if(serverMessage.contains(":")) {
-//                            user = User.unStringWithProfit(serverMessage);
-//                            break;
-//                        }
-//
-//                        int counter2 = 0;
-//                        while(!in.ready()) {
-//                            try {
-//                                TimeUnit.MILLISECONDS.sleep(1);
-//                                if(in.ready()) {
-//                                    break;
-//                                }
-//                                counter2++;
-//
-//                                if(counter2 == 10) {
-//                                    break;
-//                                }
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                        if(in.ready()) {
-//                            serverMessage = in.readLine();
-//                        } else {
-//                            break;
-//                        }
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-
-//                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
-
                 OrderBook book = new OrderBook();
                 try {
 
-//                    out.println("bookReq");
                     out.write("bookReq");
                     out.newLine();
                     out.flush();
@@ -214,25 +146,35 @@ public class EWMABot {
 
                 for(List<Order> buys : book.getBuyOrders().values()) {
                     for(Order order : buys) {
-                        buyData.add(order.price());
+                        if(periodBuy.size() > 750) {
+                            periodBuy.add(order.price());
+                            periodBuy.remove(0);
+                        } else {
+                            periodBuy.add(order.price());
+                        }
                     }
                 }
                 for(List<Order> sells : book.getSellOrders().values()) {
                     for(Order order : sells) {
-                        sellData.add(order.price());
+                        if(periodSell.size() > 750) {
+                            periodSell.add(order.price());
+                            periodSell.remove(0);
+                        } else {
+                            periodSell.add(order.price());
+                        }
                     }
                 }
 
                 List<Double> means = new ArrayList<>();
-                for(int i=0; (i<buyData.size() && i<sellData.size()); i++) {
-                    double buyPrice = buyData.get(i);
-                    double sellPrice = sellData.get(i);
+                for(int i = 0; (i< periodBuy.size() && i< periodSell.size()); i++) {
+                    double buyPrice = periodBuy.get(i);
+                    double sellPrice = periodSell.get(i);
 
                     means.add((buyPrice + sellPrice) / 2);
                 }
 
 
-                double ewmaValue = calculateEWMA(means);
+                double smaValue = calculateSMA(means);
                 boolean buyInit = false;
                 boolean sellInit = false;
 
@@ -274,14 +216,8 @@ public class EWMABot {
                     }
                 }
 
-                double temp = currentBuyPrice;
-                if(shares > 50) {
-                    temp += 0.06;
-                }
-
-                if (currentSellPrice < ewmaValue) {
+                if (currentSellPrice < smaValue) {
                     if(buyInit && sellInit) {
-//                        out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.newLine();
                         out.flush();
@@ -290,17 +226,15 @@ public class EWMABot {
                         shares++;
                         pnl -= currentSellPrice;
                     }
-                } else if (temp > ewmaValue) { //allows short selling
+                } else if (currentBuyPrice > smaValue) { //allows short selling
                     if(buyInit && sellInit) {
                         if(user.getStockAmt() <= 0) {
-//                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             out.newLine();
                             out.flush();
                             System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                         }
                         if(user.getStockAmt() >= 1) {
-//                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             out.newLine();
                             out.flush();
@@ -314,8 +248,7 @@ public class EWMABot {
 
                 System.out.println("Shares: " + shares + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
                 System.out.printf("PNL: $%.2f", pnl);
-                System.out.println("\nEWMA: " + String.format("%.2f", ewmaValue) + " " + counter);
-//                System.out.println("Potential current PNL: " + );
+                System.out.println("\nSMA: " + String.format("%.2f", smaValue) + " " + counter);
                 System.out.println();
                 counter++;
 
@@ -327,17 +260,13 @@ public class EWMABot {
 
     }
 
-    private static double calculateEWMA(List<Double> data) {
-        double alpha = 0.2;
-        if(data.size() > 0) {
-            double ewma = data.get(0);
-            for (int i = 1; i < data.size(); i++) {
-                double currentPrice = data.get(i);
-                ewma = alpha * currentPrice + (1 - alpha) * ewma;
-            }
-            return ewma;
+    private static double calculateSMA(List<Double> data) {
+        double sum = 0;
+        for(double dat : data) {
+            sum+= dat;
         }
-        return 0;
+
+        return (sum /(data.size()));
     }
 
 }
