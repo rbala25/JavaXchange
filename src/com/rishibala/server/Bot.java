@@ -98,13 +98,16 @@ class Bot implements Runnable{
                         }
                     }
                 } else {
-                    if(botId != 1) {
-                        StringBuilder builder = OrderBook.getListedMatches(botId, orderBook, true);
-                        String[] args = builder.toString().split("\n");
-                        if(args.length > 1) {
-                            for(String arg : args) {
-                                orderBook.removeOrder(Order.toOrder(arg).orderId());
-                            }
+                    int tempBotId = botId;
+                    if(botId == 1) {
+                        tempBotId = 0;
+                    }
+
+                    StringBuilder builder = OrderBook.getListedMatches(tempBotId, orderBook, true);
+                    String[] args = builder.toString().split("\n");
+                    if(args.length > 1) {
+                        for(String arg : args) {
+                            orderBook.removeOrder(Order.toOrder(arg).orderId());
                         }
                     }
 
@@ -127,29 +130,7 @@ class Bot implements Runnable{
     }
 
     private void handleOrder(Order order) {
-
-        if(order.botId() == 0) {
-            if(bot0checker) {
-                String[] all = OrderBook.getListedMatches(0, orderBook, true).toString().split("\n");
-//                System.out.println(Arrays.toString(all));
-
-                List<Order> allOrdersOfUser = new ArrayList<>();
-                if(!(all[0].equals(""))) {
-                    for(String al : all) {
-                        allOrdersOfUser.add(Order.toOrder(al));
-                    }
-                }
-
-                for(Order ord : allOrdersOfUser) {
-                    orderBook.removeOrder(ord.orderId());
-                }
-            }
-
-            bot0checker = (bot0checker == true) ? false : true;
-            orderBook.addOrder(order);
-        } else {
-            orderBook.addOrder(order);
-        }
+        orderBook.addOrder(order);
 
         for(Bot bot : bots) {
             bot.checkMatches();

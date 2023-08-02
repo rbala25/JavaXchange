@@ -18,7 +18,7 @@ public class EWMABot {
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
-    private static OrderBook last;
+    private static OrderBook last = new OrderBook();
     private static boolean afterOrder = false;
     private static int shares = 0;
     private static double pnl = 0;
@@ -50,7 +50,7 @@ public class EWMABot {
 
                 try {
 //                    Thread.sleep(25);
-                    TimeUnit.MILLISECONDS.sleep(25);
+                    TimeUnit.MILLISECONDS.sleep(30);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -276,9 +276,13 @@ public class EWMABot {
                 }
 
                 double temp = currentBuyPrice;
+//                double temp1 = currentSellPrice;
                 if(shares > 50) {
                     temp += 0.06;
                 }
+//                if(counter < 500) {
+//                    temp1 += 0.08;
+//                }
 
                 if (currentSellPrice < ewmaValue) {
                     if(buyInit && sellInit) {
