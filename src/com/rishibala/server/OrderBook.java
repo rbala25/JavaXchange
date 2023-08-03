@@ -222,30 +222,31 @@ public class OrderBook {
     }
 
     public StringBuilder serialize() {
-        synchronized (sellOrders) {
-            synchronized (buyOrders) {
-                StringBuilder builder = new StringBuilder();
+        synchronized (buyOrders) {
+            StringBuilder builder = new StringBuilder();
+            System.out.println("here13");
 
-                for(double key : buyOrders.keySet()) {
-                    builder.append(key).append(":");
-                    for(Order order : buyOrders.get(key)) {
-                        builder.append(order).append("-");
-                    }
-                    builder.replace(builder.length() - 1, builder.length(), "`");
+            for(double key : buyOrders.keySet()) {
+                builder.append(key).append(":");
+                for(Order order : buyOrders.get(key)) {
+                    builder.append(order).append("-");
                 }
-
-                builder.append("~");
-
-                for(double key : sellOrders.keySet()) {
-                    builder.append(key).append(":");
-                    for(Order order : sellOrders.get(key)) {
-                        builder.append(order).append("-");
-                    }
-                    builder.replace(builder.length() - 1, builder.length(), "`");
-                }
-
-                return builder;
+                builder.replace(builder.length() - 1, builder.length(), "`");
             }
+
+            builder.append("~");
+            System.out.println("here12");
+
+            for(double key : sellOrders.keySet()) {
+                builder.append(key).append(":");
+                for(Order order : sellOrders.get(key)) {
+                    builder.append(order).append("-");
+                }
+                builder.replace(builder.length() - 1, builder.length(), "`");
+            }
+
+            System.out.println("here");
+            return builder;
         }
     }
 
