@@ -77,7 +77,7 @@ public class FibonacciRetracementBot {
                                 }
 
                                 System.out.println("Bot " + user.getBotId());
-                                System.out.printf("Total pnl: $%.2f", pnl);
+                                System.out.printf("Total pnl: $%.2f", pnl + tempProf);
                                 break;
                             }
                             if(in.ready()) {
@@ -139,7 +139,7 @@ public class FibonacciRetracementBot {
                         }
 
                         if (millis == 10) {
-                            System.out.println("millis = 10");
+                            System.out.println("millis = 10 -> fail");
                             book = last;
                             break;
                         }

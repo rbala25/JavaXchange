@@ -45,6 +45,25 @@ class Bot implements Runnable{
            out.flush();
 
             String recievedMessage;
+            if(botId == 2) {
+                while((recievedMessage = in.readLine()) != null) {
+                    System.out.println(recievedMessage + " " + counter);
+                    counter++;
+
+                    if(recievedMessage.contains("bookReq")) {
+                        if(counter <= 10) {
+                            out.write(orderBook.serialize().toString());
+                            out.newLine();
+                            out.flush();
+                        } else {
+                            out.write("~");
+                            out.newLine();
+                            out.flush();
+                        }
+                    }
+                }
+            }
+
             while ((recievedMessage = in.readLine()) != null) {
 
                 if (recievedMessage.toLowerCase().contains("cancel")) {

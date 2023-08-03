@@ -77,7 +77,7 @@ public class EWMABot {
                                 }
 
                                 System.out.println("Bot " + user.getBotId());
-                                System.out.printf("Total pnl: $%.2f", pnl);
+                                System.out.printf("Total pnl: $%.2f", pnl + tempProf);
                                 break;
                             }
                             if(in.ready()) {
@@ -205,7 +205,7 @@ public class EWMABot {
                         }
 
                         if (millis == 10) {
-                            System.out.println("millis = 10");
+                            System.out.println("millis = 10 -> fail");
                             book = last;
                             break;
                         }
@@ -283,7 +283,7 @@ public class EWMABot {
 //                    temp1 += 0.08;
 //                }
 
-                if ((currentSellPrice < ewmaValue) && (counter < 100)) { //only can trade after the first 100 orders (not enough data points)
+                if ((currentSellPrice < ewmaValue) && (counter > 100)) { //only can trade after the first 100 orders (not enough data points)
                     if(buyInit && sellInit) {
 //                        out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
@@ -294,7 +294,7 @@ public class EWMABot {
                         shares++;
                         pnl -= currentSellPrice;
                     }
-                } else if ((temp > ewmaValue) && (counter < 100)) { //allows short selling
+                } else if ((temp > ewmaValue) && (counter > 100)) { //allows short selling
                     if(buyInit && sellInit) {
                         if(user.getStockAmt() <= 0) {
 //                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);

@@ -77,7 +77,7 @@ public class BollingerBandsBot {
                                 }
 
                                 System.out.println("Bot " + user.getBotId());
-                                System.out.printf("Total pnl: $%.2f", pnl);
+                                System.out.printf("Total pnl: $%.2f", pnl + tempProf);
                                 break;
                             }
                             if(in.ready()) {
@@ -139,7 +139,7 @@ public class BollingerBandsBot {
                         }
 
                         if (millis == 10) {
-                            System.out.println("millis = 10");
+                            System.out.println("millis = 10 -> fail");
                             book = last;
                             break;
                         }
@@ -195,7 +195,7 @@ public class BollingerBandsBot {
 
                 calculateBollingerBands();
 
-                if (((currentSellPrice - 0.05) < LowerBand) && (LowerBand != 0d)) {
+                if (((currentSellPrice - 0.08) < LowerBand) && (LowerBand != 0d)) {
                     if(buyInit && sellInit) {
                         out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.newLine();
@@ -205,7 +205,7 @@ public class BollingerBandsBot {
                         shares++;
                         pnl -= currentSellPrice;
                     }
-                } else if (((currentBuyPrice + 0.05) > UpperBand) && (UpperBand != 0d)) { //allows short selling
+                } else if (((currentBuyPrice + 0.08) > UpperBand) && (UpperBand != 0d)) { //allows short selling
                     if(buyInit && sellInit) {
                         if(user.getStockAmt() <= 0) {
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
