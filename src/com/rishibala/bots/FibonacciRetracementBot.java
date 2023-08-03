@@ -211,7 +211,7 @@ public class FibonacciRetracementBot {
                             shares++;
                             pnl -= currentSellPrice;
                         }
-                    } else if (currentBuyPrice > sellLevel) { //allows short selling
+                    } else if (currentBuyPrice > (sellLevel + 0.38)) { //allows short selling
                         if(buyInit && sellInit) {
                             if(user.getStockAmt() <= 0) {
                                 out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
