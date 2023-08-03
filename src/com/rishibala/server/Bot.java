@@ -51,7 +51,7 @@ class Bot implements Runnable{
                     counter++;
 
                     if(recievedMessage.contains("bookReq")) {
-                        if(counter <= 10) {
+                        if(counter <= 10) { //error did not occur in this test
                             out.write(orderBook.serialize().toString());
                             out.newLine();
                             out.flush();
@@ -65,6 +65,11 @@ class Bot implements Runnable{
             }
 
             while ((recievedMessage = in.readLine()) != null) {
+                if(recievedMessage.contains("bookReq")) {
+                    out.write(orderBook.serialize().toString());
+                    out.newLine();
+                    out.flush();
+                }
 
                 if (recievedMessage.toLowerCase().contains("cancel")) {
                     String[] args = recievedMessage.split(",");
@@ -100,12 +105,6 @@ class Bot implements Runnable{
                 } else if(recievedMessage.equals("checkerTrueListed")) {
                     StringBuilder builder = OrderBook.getListedMatches(0, orderBook, true);
                     System.out.println(builder.toString().split("\n").length);
-                } else if(recievedMessage.contains("bookReq")) {
-//                    System.out.println("Counter: " + counter);
-//                    counter++;
-                   out.write(orderBook.serialize().toString());
-                    out.newLine();
-                    out.flush();
                 } else if(recievedMessage.contains("MMBOT_OVER")) {
                     String[] args = recievedMessage.split(":");
 
