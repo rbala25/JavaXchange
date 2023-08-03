@@ -124,36 +124,21 @@ class Bot implements Runnable{
     private void handleOrder(Order order) {
         if(order.botId() == 0) {
             if(order.type().equals(Order.Type.BUY)) {
-                String[] all = OrderBook.getListedMatches(0, orderBook, true).toString().split("\n");
-//                System.out.println(Arrays.toString(all));
-
-                List<Order> allOrdersOfUser = new ArrayList<>();
-                if(!(all[0].equals(""))) {
-                    for(String al : all) {
-                        allOrdersOfUser.add(Order.toOrder(al));
-                    }
+                List<Order> orders = OrderBook.getListedOrders(0, orderBook);
+                for(Order thisOrder : orders) {
+                    orderBook.removeOrder(thisOrder.orderId());
                 }
 
-                for(Order ord : allOrdersOfUser) {
-                    orderBook.removeOrder(ord.orderId());
-                }
                 System.out.println(orderBook);
             }
 
             orderBook.addOrder(order);
         } else {
-            String[] all = OrderBook.getListedMatches(botId, orderBook, true).toString().split("\n");
-
-            List<Order> allOrdersOfUser = new ArrayList<>();
-            if(!(all[0].equals(""))) {
-                for(String al : all) {
-                    allOrdersOfUser.add(Order.toOrder(al));
-                }
+            List<Order> orders = OrderBook.getListedOrders(botId, orderBook);
+            for(Order thisOrder : orders) {
+                orderBook.removeOrder(thisOrder.orderId());
             }
 
-            for(Order ord : allOrdersOfUser) {
-                orderBook.removeOrder(ord.orderId());
-            }
             System.out.println(orderBook);
 
             orderBook.addOrder(order);

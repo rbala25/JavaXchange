@@ -198,6 +198,28 @@ public class OrderBook {
         return builder;
     }
 
+    public static List<Order> getListedOrders(int botId, OrderBook book) {
+        List<Order> matchedOrders = new ArrayList<>();
+
+        for(List<Order> orders : book.getBuyOrders().values()) {
+            for(Order order : orders) {
+                if(order.botId() == botId) {
+                    matchedOrders.add(order);
+                }
+            }
+        }
+
+        for(List<Order> orders : book.getSellOrders().values()) {
+            for(Order order : orders) {
+                if(order.botId() == botId) {
+                    matchedOrders.add(order);
+                }
+            }
+        }
+
+        return matchedOrders;
+    }
+
     public static boolean haveOrder(int botId, OrderBook book, int orderId) {
         String list = getListedMatches(botId, book, true).toString();
         String[] matches = list.split("\n");
