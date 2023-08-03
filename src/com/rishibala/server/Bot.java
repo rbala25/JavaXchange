@@ -35,7 +35,7 @@ class Bot implements Runnable{
     @Override
     public void run() {
 
-        int counter = 1;
+//        int counter = 1;
 
         try {
             bots.add(this);
@@ -53,14 +53,9 @@ class Bot implements Runnable{
 //                }
 
                 if(recievedMessage.contains("bookReq")) {
-                    System.out.println(counter);
                     out.write(orderBook.serialize().toString());
                     out.newLine();
                     out.flush();
-
-                    System.out.println("here " + counter);
-                    counter++;
-                    System.out.println();
                     continue;
                 }
 

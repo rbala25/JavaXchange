@@ -224,7 +224,6 @@ public class OrderBook {
     public StringBuilder serialize() {
         synchronized (buyOrders) {
             StringBuilder builder = new StringBuilder();
-            System.out.println("here13");
 
             for(double key : buyOrders.keySet()) {
                 builder.append(key).append(":");
@@ -235,7 +234,6 @@ public class OrderBook {
             }
 
             builder.append("~");
-            System.out.println("here12");
 
             for(double key : sellOrders.keySet()) {
                 builder.append(key).append(":");
@@ -245,7 +243,6 @@ public class OrderBook {
                 builder.replace(builder.length() - 1, builder.length(), "`");
             }
 
-            System.out.println("here");
             return builder;
         }
     }
