@@ -13,8 +13,8 @@ import java.util.concurrent.TimeUnit;
 public class EWMABot {
     //Estimated weighted moving average calculations
 
-    private static List<Double> buyData = new ArrayList<>();
-    private static List<Double> sellData = new ArrayList<>();
+//    private static List<Double> buyData = new ArrayList<>();
+//    private static List<Double> sellData = new ArrayList<>();
     private static List<Double> means = new ArrayList<>();
     private static Order lastBuy;
     private static Order lastSell;
@@ -190,7 +190,6 @@ public class EWMABot {
                                     } catch (ArrayIndexOutOfBoundsException e) {
                                         book = last;
                                         System.out.println("After order error");
-                                        afterOrder = true;
                                     }
                                     break;
                                 }
@@ -214,16 +213,16 @@ public class EWMABot {
                     e.printStackTrace();
                 }
 
-                for(List<Order> buys : book.getBuyOrders().values()) {
-                    for(Order order : buys) {
-                        buyData.add(order.price());
-                    }
-                }
-                for(List<Order> sells : book.getSellOrders().values()) {
-                    for(Order order : sells) {
-                        sellData.add(order.price());
-                    }
-                }
+//                for(List<Order> buys : book.getBuyOrders().values()) {
+//                    for(Order order : buys) {
+//                        buyData.add(order.price());
+//                    }
+//                }
+//                for(List<Order> sells : book.getSellOrders().values()) {
+//                    for(Order order : sells) {
+//                        sellData.add(order.price());
+//                    }
+//                }
 
                 boolean buyInit = false;
                 boolean sellInit = false;
@@ -243,29 +242,44 @@ public class EWMABot {
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
 
-
-                if(!afterOrder) {
-                    for(List<Order> buys : book.getBuyOrders().values()) {
-                        for(Order order : buys) {
-                            currentBuyPrice = order.price();
-                            currentBuyQty = order.quantity();
-                            lastBuy = order;
-                            buyInit = true;
-                        }
-                    }
-                    for(List<Order> sells : book.getSellOrders().values()) {
-                        for(Order order : sells) {
-                            if(order.price() < 100) {
-                                System.out.println("PROBLEM: " + order);
-                            }
-
-                            currentSellPrice = order.price();
-                            currentSellQty = order.quantity();
-                            lastSell = order;
-                            sellInit = true;
-                        }
-                    }
+                for(List<Order> buys : book.getBuyOrders().values()) {
+                    Order order = buys.get(0);
+                    currentBuyPrice = order.price();
+                    currentBuyQty = order.quantity();
+                    lastBuy = order;
+                    buyInit = true;
                 }
+                for(List<Order> sells : book.getSellOrders().values()) {
+                    Order order = sells.get(0);
+                    currentSellPrice = order.price();
+                    currentSellQty = order.quantity();
+                    lastSell = order;
+                    sellInit = true;
+                }
+
+//
+//                if(!afterOrder) {
+//                    for(List<Order> buys : book.getBuyOrders().values()) {
+//                        for(Order order : buys) {
+//                            currentBuyPrice = order.price();
+//                            currentBuyQty = order.quantity();
+//                            lastBuy = order;
+//                            buyInit = true;
+//                        }
+//                    }
+//                    for(List<Order> sells : book.getSellOrders().values()) {
+//                        for(Order order : sells) {
+//                            if(order.price() < 100) {
+//                                System.out.println("PROBLEM: " + order);
+//                            }
+//
+//                            currentSellPrice = order.price();
+//                            currentSellQty = order.quantity();
+//                            lastSell = order;
+//                            sellInit = true;
+//                        }
+//                    }
+//                }
 
                 if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
@@ -323,7 +337,6 @@ public class EWMABot {
                 System.out.println();
                 counter++;
 
-                afterOrder = false;
             }
         } catch(IOException e) {
             e.printStackTrace();

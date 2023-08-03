@@ -23,7 +23,8 @@ class Bot implements Runnable{
         this.user = user;
 
         try {
-            out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
+            socket.setSoTimeout(2500);
+            out = new BufferedWriter(new PrintWriter(socket.getOutputStream()));
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //            in = new Scanner(socket.getInputStream());
         } catch (IOException e) {
@@ -45,30 +46,22 @@ class Bot implements Runnable{
            out.flush();
 
             String recievedMessage;
-            if(botId == 2) {
-                while((recievedMessage = in.readLine()) != null) {
-                    System.out.println(recievedMessage + " " + counter);
-                    counter++;
-
-                    if(recievedMessage.contains("bookReq")) {
-                        if(counter <= 10) { //error did not occur in this test
-                            out.write(orderBook.serialize().toString());
-                            out.newLine();
-                            out.flush();
-                        } else {
-                            out.write("~");
-                            out.newLine();
-                            out.flush();
-                        }
-                    }
-                }
-            }
-
             while ((recievedMessage = in.readLine()) != null) {
+//                if(botId != 1) {
+//                    System.out.println(recievedMessage + " " + counter);
+//                    counter++;
+//                }
+
                 if(recievedMessage.contains("bookReq")) {
+                    System.out.println(counter);
                     out.write(orderBook.serialize().toString());
                     out.newLine();
                     out.flush();
+
+                    System.out.println("here " + counter);
+                    counter++;
+                    System.out.println();
+                    continue;
                 }
 
                 if (recievedMessage.toLowerCase().contains("cancel")) {
