@@ -285,6 +285,10 @@ public class EWMABot {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
                 }
 
+                if(means.size() > 5000) { //period of 5000
+                    means.remove(0);
+                }
+
                 double ewmaValue = calculateEWMA();
 
                 double temp = currentBuyPrice;

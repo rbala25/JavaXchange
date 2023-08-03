@@ -148,7 +148,7 @@ public class SMABot {
 
                 for(List<Order> buys : book.getBuyOrders().values()) {
                     for(Order order : buys) {
-                        if(periodBuy.size() > 750) {
+                        if(periodBuy.size() > 2000) {
                             periodBuy.add(order.price());
                             periodBuy.remove(0);
                         } else {
@@ -158,7 +158,7 @@ public class SMABot {
                 }
                 for(List<Order> sells : book.getSellOrders().values()) {
                     for(Order order : sells) {
-                        if(periodSell.size() > 750) {
+                        if(periodSell.size() > 2000) {
                             periodSell.add(order.price());
                             periodSell.remove(0);
                         } else {
@@ -226,19 +226,10 @@ public class SMABot {
                     }
                 } else if ((currentBuyPrice > smaValue) && (counter > 100)) { //allows short selling
                     if(buyInit && sellInit) {
-                        if(user.getStockAmt() <= 0) {
-                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        }
-                        if(user.getStockAmt() >= 1) {
-                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        }
-
+                        out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                         shares--;
                         pnl += currentBuyPrice;
                     }

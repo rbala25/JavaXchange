@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class FibonacciRetracementBot {
-    //Simple moving average calculations
+    //Fibonacci Retracement calculations
 
     private static final List<Double> means = new ArrayList<>();
     private static double swingHigh = 0;
@@ -196,6 +196,10 @@ public class FibonacciRetracementBot {
                     updateSwingLow(mean);
                 }
 
+                if(means.size() > 251) {
+                    means.remove(0);
+                }
+
                 if(counter > 250) {
                     double[] levels = calculateFibonacciRetracement();
                     double buyLevel = levels[2]; // uses the 50% fibonacci retracement level
@@ -213,18 +217,10 @@ public class FibonacciRetracementBot {
                         }
                     } else if (currentBuyPrice > (sellLevel + 0.38)) { //allows short selling
                         if(buyInit && sellInit) {
-                            if(user.getStockAmt() <= 0) {
-                                out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                                out.newLine();
-                                out.flush();
-                                System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            }
-                            if(user.getStockAmt() >= 1) {
-                                out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                                out.newLine();
-                                out.flush();
-                                System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            }
+                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                            out.newLine();
+                            out.flush();
+                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
 
                             shares--;
                             pnl += currentBuyPrice;

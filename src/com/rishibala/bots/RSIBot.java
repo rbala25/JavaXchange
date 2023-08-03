@@ -10,13 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class BollingerBandsBot {
-    //Bollinger Bands Calculations
+public class RSIBot {
+    //Relative Strength Index Calculations
 
     private static final List<Double> means = new ArrayList<>();
-    private static double UpperBand;
-    private static double MiddleBand;
-    private static double LowerBand;
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
@@ -192,37 +189,39 @@ public class BollingerBandsBot {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
                 }
 
-                if(means.size() > 3000) {
+                if(means.size() > 5000) { //period of 5000
                     means.remove(0);
                 }
 
-                calculateBollingerBands();
+                double rsiValue = calculateRSI();
 
-                if (((currentSellPrice - 0.08) < LowerBand) && (LowerBand != 0d)) {
-                    if(buyInit && sellInit) {
-                        out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                        out.newLine();
-                        out.flush();
-                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                if(rsiValue != 0) {
+                    if ((rsiValue < 30) ) {
+                        if(buyInit && sellInit) {
+                            out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                            out.newLine();
+                            out.flush();
+                            System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
 
-                        shares++;
-                        pnl -= currentSellPrice;
-                    }
-                } else if (((currentBuyPrice + 0.08) > UpperBand) && (UpperBand != 0d)) { //allows short selling
-                    if(buyInit && sellInit) {
-                        out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        out.newLine();
-                        out.flush();
-                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                            shares++;
+                            pnl -= currentSellPrice;
+                        }
+                    } else if ((rsiValue > 70)) { //allows short selling
+                        if(buyInit && sellInit) {
+                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                            out.newLine();
+                            out.flush();
+                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
 
-                        shares--;
-                        pnl += currentBuyPrice;
+                            shares--;
+                            pnl += currentBuyPrice;
+                        }
                     }
                 }
 
-                System.out.println("Shares: " + shares + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
+                System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
                 System.out.printf("PNL: $%.2f", pnl);
-                System.out.println("\nBands: " + String.format("$%.2f, $%.2f, $%.2f", UpperBand, MiddleBand, LowerBand) + " " + counter);
+                System.out.println("\nRSI: " + String.format("%.2f", rsiValue) + " " + counter);
                 System.out.println();
                 counter++;
 
@@ -234,28 +233,39 @@ public class BollingerBandsBot {
 
     }
 
-    private static void calculateBollingerBands() {
-        if (means.size() < 250) {
-            return; //do not make any trades until we have a full period (not enough data points)
+    private static double calculateRSI() {
+        int dataSize = means.size();
+        if (dataSize <= 250) {
+            return 0d;
         }
 
-        // SMA is middle band
-        double sum = 0;
-        for (int i = means.size() - 250; i < means.size(); i++) {
-            sum += means.get(i);
+        double[] priceChanges = new double[dataSize - 1];
+        for (int i=1; i<dataSize; i++) {
+            priceChanges[i - 1] = means.get(i) - means.get(i - 1);
         }
-        MiddleBand = sum / 250;
 
-        // standard deviation
-        double sumSquaredDifference = 0;
-        for (int i = means.size() - 250; i < means.size(); i++) {
-            double difference = means.get(i) - MiddleBand;
-            sumSquaredDifference += difference * difference;
+        //gains and losses
+        double avgGain = 0;
+        double avgLoss = 0;
+        for (int i = 0; i < 250; i++) {
+            if (priceChanges[i] > 0) {
+                avgGain += priceChanges[i];
+            } else {
+                avgLoss += Math.abs(priceChanges[i]);
+            }
         }
-        double standardDeviation = Math.sqrt(sumSquaredDifference / (250 - 1));
+        avgGain /= 250;
+        avgLoss /= 250;
 
-        // upper and lower
-        UpperBand = MiddleBand + (2 * standardDeviation);
-        LowerBand = MiddleBand - (2 * standardDeviation);
+        // relative strength rs
+        double rs;
+        if (avgLoss == 0) {
+            rs = 100;
+        } else {
+            rs = avgGain / avgLoss;
+        }
+
+        return (100 - (100 / (1 + rs)));
     }
+
 }
