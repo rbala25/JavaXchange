@@ -217,8 +217,10 @@ public class OrderBook {
 
     @Override
     public String toString() {
-        return "buyOrders=" + buyOrders +
-                ", sellOrders=" + sellOrders;
+        synchronized (this) {
+            return "buyOrders=" + buyOrders +
+                    ", sellOrders=" + sellOrders;
+        }
     }
 
     public StringBuilder serialize() {

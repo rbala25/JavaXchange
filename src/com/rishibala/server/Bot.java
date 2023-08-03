@@ -14,7 +14,6 @@ class Bot implements Runnable{
     private BufferedWriter out;
     private BufferedReader in;
     private static final List<Bot> bots = new ArrayList<>();
-    private boolean bot0checker = true;
 
     Bot(Socket socket, int botId, OrderBook orderBook, User user) {
         this.socket = socket;
@@ -104,17 +103,6 @@ class Bot implements Runnable{
                         }
                     }
                 } else {
-
-                    if(botId != 1) {
-                        StringBuilder builder = OrderBook.getListedMatches(botId, orderBook, true);
-                        String[] args = builder.toString().split("\n");
-                        if(args.length > 1) {
-                            for(String arg : args) {
-                                orderBook.removeOrder(Order.toOrder(arg).orderId());
-                            }
-                        }
-                    }
-
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
                 }
@@ -135,7 +123,7 @@ class Bot implements Runnable{
 
     private void handleOrder(Order order) {
         if(order.botId() == 0) {
-            if(bot0checker) {
+            if(order.type().equals(Order.Type.BUY)) {
                 String[] all = OrderBook.getListedMatches(0, orderBook, true).toString().split("\n");
 //                System.out.println(Arrays.toString(all));
 
@@ -149,11 +137,25 @@ class Bot implements Runnable{
                 for(Order ord : allOrdersOfUser) {
                     orderBook.removeOrder(ord.orderId());
                 }
+                System.out.println(orderBook);
             }
 
-            bot0checker = (bot0checker == true) ? false : true;
             orderBook.addOrder(order);
         } else {
+            String[] all = OrderBook.getListedMatches(botId, orderBook, true).toString().split("\n");
+
+            List<Order> allOrdersOfUser = new ArrayList<>();
+            if(!(all[0].equals(""))) {
+                for(String al : all) {
+                    allOrdersOfUser.add(Order.toOrder(al));
+                }
+            }
+
+            for(Order ord : allOrdersOfUser) {
+                orderBook.removeOrder(ord.orderId());
+            }
+            System.out.println(orderBook);
+
             orderBook.addOrder(order);
         }
 
