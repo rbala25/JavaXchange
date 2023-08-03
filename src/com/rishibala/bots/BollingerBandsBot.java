@@ -10,12 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class SMABot {
-    //Simple moving average calculations
+public class BollingerBandsBot {
+    //Bollinger Bands Calculations
 
-    private static List<Double> periodBuy = new ArrayList<>();
-    private static List<Double> periodSell = new ArrayList<>();
     private static List<Double> means = new ArrayList<>();
+    private static double UpperBand;
+    private static double MiddleBand;
+    private static double LowerBand;
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
@@ -147,27 +148,6 @@ public class SMABot {
                     e.printStackTrace();
                 }
 
-                for(List<Order> buys : book.getBuyOrders().values()) {
-                    for(Order order : buys) {
-                        if(periodBuy.size() > 750) {
-                            periodBuy.add(order.price());
-                            periodBuy.remove(0);
-                        } else {
-                            periodBuy.add(order.price());
-                        }
-                    }
-                }
-                for(List<Order> sells : book.getSellOrders().values()) {
-                    for(Order order : sells) {
-                        if(periodSell.size() > 750) {
-                            periodSell.add(order.price());
-                            periodSell.remove(0);
-                        } else {
-                            periodSell.add(order.price());
-                        }
-                    }
-                }
-
                 boolean buyInit = false;
                 boolean sellInit = false;
 
@@ -213,9 +193,9 @@ public class SMABot {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
                 }
 
-                double smaValue = calculateSMA();
+                calculateBollingerBands();
 
-                if (currentSellPrice < smaValue) {
+                if (((currentSellPrice - 0.05) < LowerBand) && (LowerBand != 0d)) {
                     if(buyInit && sellInit) {
                         out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.newLine();
@@ -225,7 +205,7 @@ public class SMABot {
                         shares++;
                         pnl -= currentSellPrice;
                     }
-                } else if (currentBuyPrice > smaValue) { //allows short selling
+                } else if (((currentBuyPrice + 0.05) > UpperBand) && (UpperBand != 0d)) { //allows short selling
                     if(buyInit && sellInit) {
                         if(user.getStockAmt() <= 0) {
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
@@ -245,9 +225,9 @@ public class SMABot {
                     }
                 }
 
-                System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
+                System.out.println("Shares: " + shares + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
                 System.out.printf("PNL: $%.2f", pnl);
-                System.out.println("\nSMA: " + String.format("$%.2f", smaValue) + " " + counter);
+                System.out.println("\nBands: " + String.format("$%.2f, $%.2f, $%.2f", UpperBand, MiddleBand, LowerBand) + " " + counter);
                 System.out.println();
                 counter++;
 
@@ -259,13 +239,28 @@ public class SMABot {
 
     }
 
-    private static double calculateSMA() {
-        double sum = 0;
-        for(double data : means) {
-            sum += data;
+    private static void calculateBollingerBands() {
+        if (means.size() < 250) {
+            return; //do not make any trades until we have a full period
         }
 
-        return (sum /(means.size()));
-    }
+        // SMA is middle band
+        double sum = 0;
+        for (int i = means.size() - 250; i < means.size(); i++) {
+            sum += means.get(i);
+        }
+        MiddleBand = sum / 250;
 
+        // standard deviation
+        double sumSquaredDifference = 0;
+        for (int i = means.size() - 250; i < means.size(); i++) {
+            double difference = means.get(i) - MiddleBand;
+            sumSquaredDifference += difference * difference;
+        }
+        double standardDeviation = Math.sqrt(sumSquaredDifference / (250 - 1));
+
+        // upper and lower
+        UpperBand = MiddleBand + (2 * standardDeviation);
+        LowerBand = MiddleBand - (2 * standardDeviation);
+    }
 }

@@ -15,6 +15,7 @@ public class EWMABot {
 
     private static List<Double> buyData = new ArrayList<>();
     private static List<Double> sellData = new ArrayList<>();
+    private static List<Double> means = new ArrayList<>();
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
@@ -25,7 +26,7 @@ public class EWMABot {
 
     public static void main(String[] args) {
         int counter = 1;
-        int oppCounter = 0;
+//        int oppCounter = 0;
         int botId = 0;
         User user = new User();
 
@@ -224,16 +225,6 @@ public class EWMABot {
                     }
                 }
 
-                List<Double> means = new ArrayList<>();
-                for(int i=0; (i<buyData.size() && i<sellData.size()); i++) {
-                    double buyPrice = buyData.get(i);
-                    double sellPrice = sellData.get(i);
-
-                    means.add((buyPrice + sellPrice) / 2);
-                }
-
-
-                double ewmaValue = calculateEWMA(means);
                 boolean buyInit = false;
                 boolean sellInit = false;
 
@@ -251,6 +242,7 @@ public class EWMABot {
 
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
+
 
                 if(!afterOrder) {
                     for(List<Order> buys : book.getBuyOrders().values()) {
@@ -274,6 +266,12 @@ public class EWMABot {
                         }
                     }
                 }
+
+                if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
+                    means.add((currentSellPrice + currentBuyPrice) / 2);
+                }
+
+                double ewmaValue = calculateEWMA();
 
                 double temp = currentBuyPrice;
 //                double temp1 = currentSellPrice;
@@ -317,9 +315,9 @@ public class EWMABot {
                     }
                 }
 
-                System.out.println("Shares: " + shares + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
+                System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
                 System.out.printf("PNL: $%.2f", pnl);
-                System.out.println("\nEWMA: " + String.format("%.2f", ewmaValue) + " " + counter);
+                System.out.println("\nEWMA: " + String.format("$%.2f", ewmaValue) + " " + counter);
 //                System.out.println("Potential current PNL: " + );
                 System.out.println();
                 counter++;
@@ -332,12 +330,12 @@ public class EWMABot {
 
     }
 
-    private static double calculateEWMA(List<Double> data) {
+    private static double calculateEWMA() {
         double alpha = 0.2;
-        if(data.size() > 0) {
-            double ewma = data.get(0);
-            for (int i = 1; i < data.size(); i++) {
-                double currentPrice = data.get(i);
+        if(means.size() > 0) {
+            double ewma = means.get(0);
+            for (int i = 1; i < means.size(); i++) {
+                double currentPrice = means.get(i);
                 ewma = alpha * currentPrice + (1 - alpha) * ewma;
             }
             return ewma;
