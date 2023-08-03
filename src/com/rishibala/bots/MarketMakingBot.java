@@ -27,7 +27,7 @@ public class MarketMakingBot {
         System.out.println("Size: " + size);
 
         try {
-            Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
+            Socket socket = new Socket("localhost", 5000); //change localhost if on different ip
 //            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 

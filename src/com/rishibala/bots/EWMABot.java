@@ -31,7 +31,7 @@ public class EWMABot {
         User user = new User();
 
         try {
-            Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
+            Socket socket = new Socket("localhost", 5000); //change localhost if on different ip
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));

@@ -19,7 +19,7 @@ public class StockExchange {
 
     public static void main(String[] args) {
         try {
-            ServerSocket serverSocket = new ServerSocket(3000);
+            ServerSocket serverSocket = new ServerSocket(5000);
             System.out.println("server started.");
 
             int botId = 0;
