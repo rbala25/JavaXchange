@@ -7,33 +7,33 @@ import com.rishibala.server.User;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class EWMABot {
-    //Estimated weighted moving average calculations
+public class FibonacciRetracementBot {
+    //Simple moving average calculations
 
-    private static List<Double> buyData = new ArrayList<>();
-    private static List<Double> sellData = new ArrayList<>();
     private static List<Double> means = new ArrayList<>();
+    private static double swingHigh = 0;
+    private static double swingLow = 0;
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
-    private static OrderBook last = new OrderBook();
+    private static OrderBook last;
     private static boolean afterOrder = false;
     private static int shares = 0;
     private static double pnl = 0;
 
     public static void main(String[] args) {
         int counter = 1;
-//        int oppCounter = 0;
+        int oppCounter = 0;
         int botId = 0;
         User user = new User();
 
         try {
             Socket socket = new Socket("localhost", 3000); //change localhost if on different ip
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
 
             try {
@@ -102,75 +102,9 @@ public class EWMABot {
                     String str = in.readLine();
                 }
 
-//                out.println("EWMAReReq");
-//                out.flush();
-//                try {
-//
-//                    String serverMessage = "";
-//                    int counter3 = 0;
-//                    boolean counter3b = false;
-//
-//                    while(!in.ready()) {
-//                        try {
-//                            TimeUnit.MILLISECONDS.sleep(1);
-//                            if(in.ready()) {
-//                                break;
-//                            }
-//                            counter3++;
-//
-//                            if(counter3 == 10) {
-//                                System.out.println("counter 3 = 10");
-//                                counter3b = true;
-//                                break;
-//                            }
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//
-//                    if(!counter3b) {
-//                        serverMessage = in.readLine();
-//                    }
-//
-//                    while(serverMessage != "") {
-//                        if(serverMessage.contains(":")) {
-//                            user = User.unStringWithProfit(serverMessage);
-//                            break;
-//                        }
-//
-//                        int counter2 = 0;
-//                        while(!in.ready()) {
-//                            try {
-//                                TimeUnit.MILLISECONDS.sleep(1);
-//                                if(in.ready()) {
-//                                    break;
-//                                }
-//                                counter2++;
-//
-//                                if(counter2 == 10) {
-//                                    break;
-//                                }
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                        if(in.ready()) {
-//                            serverMessage = in.readLine();
-//                        } else {
-//                            break;
-//                        }
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-
-//                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
-
                 OrderBook book = new OrderBook();
                 try {
 
-//                    out.println("bookReq");
                     out.write("bookReq");
                     out.newLine();
                     out.flush();
@@ -214,17 +148,6 @@ public class EWMABot {
                     e.printStackTrace();
                 }
 
-                for(List<Order> buys : book.getBuyOrders().values()) {
-                    for(Order order : buys) {
-                        buyData.add(order.price());
-                    }
-                }
-                for(List<Order> sells : book.getSellOrders().values()) {
-                    for(Order order : sells) {
-                        sellData.add(order.price());
-                    }
-                }
-
                 boolean buyInit = false;
                 boolean sellInit = false;
 
@@ -242,7 +165,6 @@ public class EWMABot {
 
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
-
 
                 if(!afterOrder) {
                     for(List<Order> buys : book.getBuyOrders().values()) {
@@ -268,80 +190,133 @@ public class EWMABot {
                 }
 
                 if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
-                    means.add((currentSellPrice + currentBuyPrice) / 2);
+                    double mean = ((currentSellPrice + currentBuyPrice) / 2);
+                    means.add(mean);
+                    updateSwingHigh(mean);
+                    updateSwingLow(mean);
                 }
 
-                double ewmaValue = calculateEWMA();
+                if(counter > 250) {
+                    double[] levels = calculateFibonacciRetracement();
+                    double buyLevel = levels[2]; // uses the 50% fibonacci retracement level
+                    double sellLevel = levels[4]; // uses the 78.6% fibonacci retracement level
 
-                double temp = currentBuyPrice;
-//                double temp1 = currentSellPrice;
-
-                if(shares > 50) {  //more incentive to sell
-                    temp += 0.06;
-                }
-//                if(counter < 500) {
-//                    temp1 += 0.08;
-//                }
-
-                if ((currentSellPrice < ewmaValue) && (counter < 100)) { //only can trade after the first 100 orders (not enough data points)
-                    if(buyInit && sellInit) {
-//                        out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                        out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                        out.newLine();
-                        out.flush();
-                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-
-                        shares++;
-                        pnl -= currentSellPrice;
-                    }
-                } else if ((temp > ewmaValue) && (counter < 100)) { //allows short selling
-                    if(buyInit && sellInit) {
-                        if(user.getStockAmt() <= 0) {
-//                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                    if (currentSellPrice < buyLevel) {
+                        if(buyInit && sellInit) {
+                            out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                             out.newLine();
                             out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        }
-                        if(user.getStockAmt() >= 1) {
-//                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        }
+                            System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
 
-                        shares--;
-                        pnl += currentBuyPrice;
+                            shares++;
+                            pnl -= currentSellPrice;
+                        }
+                    } else if (currentBuyPrice > sellLevel) { //allows short selling
+                        if(buyInit && sellInit) {
+                            if(user.getStockAmt() <= 0) {
+                                out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                                out.newLine();
+                                out.flush();
+                                System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                            }
+                            if(user.getStockAmt() >= 1) {
+                                out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                                out.newLine();
+                                out.flush();
+                                System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                            }
+
+                            shares--;
+                            pnl += currentBuyPrice;
+                        }
                     }
+
+                    System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
+                    System.out.printf("PNL: $%.2f", pnl);
+                    System.out.println("\nFib Retracement Levels: " + Arrays.toString(levels) + " " + counter);
+                    System.out.println();
+                    counter++;
+                } else {
+                    System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
+                    System.out.printf("PNL: $%.2f", pnl);
+                    System.out.println("\nFib Retracement Levels: N/A" + " " + counter);
+                    System.out.println();
+                    counter++;
                 }
 
-                System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
-                System.out.printf("PNL: $%.2f", pnl);
-                System.out.println("\nEWMA: " + String.format("$%.2f", ewmaValue) + " " + counter);
-//                System.out.println("Potential current PNL: " + );
-                System.out.println();
-                counter++;
 
                 afterOrder = false;
             }
         } catch(IOException e) {
             e.printStackTrace();
         }
-
     }
 
-    private static double calculateEWMA() {
-        double alpha = 0.2;
-        if(means.size() > 0) {
-            double ewma = means.get(0);
-            for (int i = 1; i < means.size(); i++) {
-                double currentPrice = means.get(i);
-                ewma = alpha * currentPrice + (1 - alpha) * ewma;
-            }
-            return ewma;
+    private static double[] calculateFibonacciRetracement() {
+        if (means.size() < 250) {
+            return null; // no trades until after we have 1 full 250 (not enough data points)
         }
-        return 0;
+
+        if ((swingHigh == 0) || (swingLow == 0)) {
+            return null;
+        }
+
+        double[] retracementLevels = new double[5];
+        double priceRange = swingHigh - swingLow;
+
+        retracementLevels[0] = swingHigh - (0.236 * priceRange);
+        retracementLevels[1] = swingHigh - (0.382 * priceRange);
+        retracementLevels[2] = swingHigh - (0.5 * priceRange);
+        retracementLevels[3] = swingHigh - (0.618 * priceRange);
+        retracementLevels[4] = swingHigh - (0.786 * priceRange);
+
+        return retracementLevels;
+    }
+
+    private static void updateSwingHigh(double point) {
+        List<Double> periodData;
+        if(means.size() >= 250) {
+            periodData = means.subList((means.size() - 250), means.size() - 1);
+        } else if(means.size() == 1) {
+            swingHigh = means.get(0);
+            return;
+        } else {
+            periodData = means.subList(0, means.size() - 1);
+        }
+
+        double max = Double.MIN_VALUE;
+        for(double price : periodData) {
+            if(price > max) {
+                max = price;
+            }
+        }
+
+        if(point > max) {
+            swingHigh = point;
+        }
+    }
+
+    private static void updateSwingLow(double point) {
+        List<Double> periodData;
+        if(means.size() >= 250) {
+            periodData = means.subList((means.size() - 250), means.size() - 1);
+        } else if(means.size() == 1) {
+            swingHigh = means.get(0);
+            return;
+        } else {
+            periodData = means.subList(0, means.size() - 1);
+        }
+
+        double min = Double.MAX_VALUE;
+        for(double price : periodData) {
+            if(price < min) {
+                min = price;
+            }
+        }
+
+        if(point < min) {
+            swingLow = point;
+        }
     }
 
 }

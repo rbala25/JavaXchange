@@ -241,7 +241,7 @@ public class BollingerBandsBot {
 
     private static void calculateBollingerBands() {
         if (means.size() < 250) {
-            return; //do not make any trades until we have a full period
+            return; //do not make any trades until we have a full period (not enough data points)
         }
 
         // SMA is middle band

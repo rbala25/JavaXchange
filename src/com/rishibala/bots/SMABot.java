@@ -215,7 +215,7 @@ public class SMABot {
 
                 double smaValue = calculateSMA();
 
-                if (currentSellPrice < smaValue) {
+                if ((currentSellPrice < smaValue) && (counter < 100)) { //only can trade after the first 100 orders (not enough data points)
                     if(buyInit && sellInit) {
                         out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.newLine();
@@ -225,7 +225,7 @@ public class SMABot {
                         shares++;
                         pnl -= currentSellPrice;
                     }
-                } else if (currentBuyPrice > smaValue) { //allows short selling
+                } else if ((currentBuyPrice > smaValue) && (counter < 100)) { //allows short selling
                     if(buyInit && sellInit) {
                         if(user.getStockAmt() <= 0) {
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
