@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class BollingerBandsBot {
     //Bollinger Bands Calculations
 
-    private static List<Double> means = new ArrayList<>();
+    private static final List<Double> means = new ArrayList<>();
     private static double UpperBand;
     private static double MiddleBand;
     private static double LowerBand;
@@ -27,7 +27,6 @@ public class BollingerBandsBot {
 
     public static void main(String[] args) {
         int counter = 1;
-        int oppCounter = 0;
         int botId = 0;
         User user = new User();
 

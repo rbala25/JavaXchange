@@ -13,38 +13,36 @@ public class OrderBook {
 
     void addOrder(Order order) {
         synchronized (buyOrders) {
-            synchronized (sellOrders) {
-                if(order.botId() == -1) {
-                    return;
-                }
+            if(order.botId() == -1) {
+                return;
+            }
 
-                SortedMap<Double, List<Order>> ordersMap;
-                if (order.type().equals(Order.Type.BUY)) {
-                    ordersMap = buyOrders;
-                } else if (order.type().equals(Order.Type.SELL)) {
-                    ordersMap = sellOrders;
-                } else {
-                    throw new IllegalArgumentException("Invalid order type: " + order.type());
-                }
+            SortedMap<Double, List<Order>> ordersMap;
+            if (order.type().equals(Order.Type.BUY)) {
+                ordersMap = buyOrders;
+            } else if (order.type().equals(Order.Type.SELL)) {
+                ordersMap = sellOrders;
+            } else {
+                throw new IllegalArgumentException("Invalid order type: " + order.type());
+            }
 
-                List<Order> vals = ordersMap.get(order.pricePerQuantity());
-                if(vals != null) {
-                    ArrayList<Order> replacement = new ArrayList<>(vals);
-                    try {
-                        replacement.add(order);
-                    } catch (UnsupportedOperationException e) {
-                        System.out.println("VALS: " + vals);
-                        System.out.println("REPLACEMENT: " + replacement);
-                        System.out.println("ERROR: " + order);
-                    }
-                    ordersMap.put(order.pricePerQuantity(), replacement);
-                } else {;
-                    ordersMap.put(order.pricePerQuantity(), List.of(order));
+            List<Order> vals = ordersMap.get(order.pricePerQuantity());
+            if(vals != null) {
+                ArrayList<Order> replacement = new ArrayList<>(vals);
+                try {
+                    replacement.add(order);
+                } catch (UnsupportedOperationException e) {
+                    System.out.println("VALS: " + vals);
+                    System.out.println("REPLACEMENT: " + replacement);
+                    System.out.println("ERROR: " + order);
                 }
+                ordersMap.put(order.pricePerQuantity(), replacement);
+            } else {;
+                ordersMap.put(order.pricePerQuantity(), List.of(order));
+            }
 
-                if(order.botId() != 0) {
-                    System.out.println("New Order: " + order);
-                }
+            if(order.botId() != 0) {
+                System.out.println("New Order: " + order);
             }
         }
     }
@@ -102,10 +100,19 @@ public class OrderBook {
 
     boolean removeOrder(int orderId) {
         synchronized (buyOrders) {
-            synchronized (sellOrders) {
-                Order order = new Order();
-                boolean check = false;
-                for(List<Order> entries : buyOrders.values()) {
+            Order order = new Order();
+            boolean check = false;
+            for(List<Order> entries : buyOrders.values()) {
+                for(Order entry : entries) {
+                    if(entry.orderId() == orderId) {
+                        check = true;
+                        order = entry;
+                    }
+                }
+            }
+
+            if(!check) {
+                for(List<Order> entries : sellOrders.values()) {
                     for(Order entry : entries) {
                         if(entry.orderId() == orderId) {
                             check = true;
@@ -113,24 +120,13 @@ public class OrderBook {
                         }
                     }
                 }
-
-                if(!check) {
-                    for(List<Order> entries : sellOrders.values()) {
-                        for(Order entry : entries) {
-                            if(entry.orderId() == orderId) {
-                                check = true;
-                                order = entry;
-                            }
-                        }
-                    }
-                }
-
-                if(check) {
-                    removeOrder(order);
-                    return true;
-                }
-                return false;
             }
+
+            if(check) {
+                removeOrder(order);
+                return true;
+            }
+            return false;
         }
     }
 
@@ -143,20 +139,22 @@ public class OrderBook {
     }
 
     List<Set<Order>> matchOrders() {
-        List<Set<Order>> matches = new ArrayList<>();
-        for(List<Order> list : sellOrders.values()) {
-            for(Order order : list) {
-                var buys = buyOrders.values();
-                boolean matchGot = false;
+        synchronized (buyOrders) {
+            List<Set<Order>> matches = new ArrayList<>();
+            for(List<Order> list : sellOrders.values()) {
+                for(Order order : list) {
+                    var buys = buyOrders.values();
+                    boolean matchGot = false;
 
-                for(List<Order> buys1 : buys) {
-                    for(Order buy : buys1) {
-                        if(buy.pricePerQuantity() >= order.pricePerQuantity()) {
-                            if(order.quantity() >= buy.quantity()) {
-                                if(!matchGot) {
-                                    if(buy.botId() != order.botId()) {
-                                        matches.add(new HashSet<>(Set.of(order, buy)));
-                                        matchGot = true;
+                    for(List<Order> buys1 : buys) {
+                        for(Order buy : buys1) {
+                            if(buy.pricePerQuantity() >= order.pricePerQuantity()) {
+                                if(order.quantity() >= buy.quantity()) {
+                                    if(!matchGot) {
+                                        if(buy.botId() != order.botId()) {
+                                            matches.add(new HashSet<>(Set.of(order, buy)));
+                                            matchGot = true;
+                                        }
                                     }
                                 }
                             }
@@ -164,9 +162,8 @@ public class OrderBook {
                     }
                 }
             }
+            return matches;
         }
-
-        return matches;
     }
 
     public static StringBuilder getListedMatches(int botId, OrderBook book, boolean checker) {

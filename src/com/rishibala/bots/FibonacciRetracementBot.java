@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class FibonacciRetracementBot {
     //Simple moving average calculations
 
-    private static List<Double> means = new ArrayList<>();
+    private static final List<Double> means = new ArrayList<>();
     private static double swingHigh = 0;
     private static double swingLow = 0;
     private static Order lastBuy;

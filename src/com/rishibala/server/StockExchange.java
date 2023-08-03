@@ -14,8 +14,6 @@ public class StockExchange {
 //    private static final List<Socket> sockets = new ArrayList<>();
 
     private static final OrderBook book = new OrderBook();
-    private static boolean second = false;
-    private static boolean first = true;
 
     public static void main(String[] args) {
         try {

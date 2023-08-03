@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 class Bot implements Runnable{
-    private Socket socket;
+    private final Socket socket;
     private final int botId;
     private final OrderBook orderBook;
     private final User user;
@@ -52,6 +52,13 @@ class Bot implements Runnable{
 //                }
 
                 if(recievedMessage.contains("bookReq")) {
+                    if(botId != 1) {
+                        List<Order> orders = OrderBook.getListedOrders(botId, orderBook);
+                        for(Order thisOrder : orders) {
+                            orderBook.removeOrder(thisOrder.orderId());
+                        }
+                    }
+
                     out.write(orderBook.serialize().toString());
                     out.newLine();
                     out.flush();
@@ -129,18 +136,10 @@ class Bot implements Runnable{
                     orderBook.removeOrder(thisOrder.orderId());
                 }
 
-                System.out.println(orderBook);
             }
 
             orderBook.addOrder(order);
         } else {
-            List<Order> orders = OrderBook.getListedOrders(botId, orderBook);
-            for(Order thisOrder : orders) {
-                orderBook.removeOrder(thisOrder.orderId());
-            }
-
-            System.out.println(orderBook);
-
             orderBook.addOrder(order);
         }
 
@@ -224,7 +223,7 @@ class Bot implements Runnable{
             str = String.format("Buying %d shares from Client #%d for $%.2f", bot1.quantity(), bot2.botId(), bot1.price());
             alt = String.format("Selling %d shares to Client #%d for $%.2f", bot1.quantity(), bot1.botId(), bot1.price());
         }
-//        String str = "Found match for Order: " + bot1.toString() + "-Trading with Order: " + bot2.toString() + "-You have " + user.getStockAmt() + " shares.";
+
      try {
          out.write(str);
          out.newLine();

@@ -15,12 +15,12 @@ public class EWMABot {
 
 //    private static List<Double> buyData = new ArrayList<>();
 //    private static List<Double> sellData = new ArrayList<>();
-    private static List<Double> means = new ArrayList<>();
+    private static final List<Double> means = new ArrayList<>();
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
     private static OrderBook last = new OrderBook();
-    private static boolean afterOrder = false;
+//    private static boolean afterOrder = false;
     private static int shares = 0;
     private static double pnl = 0;
 
@@ -297,6 +297,8 @@ public class EWMABot {
 //                    temp1 += 0.08;
 //                }
 
+                currentSellPrice -= 0.02;
+                temp -= 0.02;
                 if ((currentSellPrice < ewmaValue) && (counter > 100)) { //only can trade after the first 100 orders (not enough data points)
                     if(buyInit && sellInit) {
 //                        out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
