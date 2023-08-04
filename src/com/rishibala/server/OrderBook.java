@@ -48,25 +48,26 @@ public class OrderBook {
     }
 
     private boolean removeOrder(Order order) {
-        if(order.type().equals(Order.Type.BUY)) {
-            List<Order> vals = buyOrders.get(order.pricePerQuantity());
-            int index = -1;
-            for(int i=0; i<vals.size(); i++) {
-                if(vals.get(i).equals(order)) {
-                    index = i;
-                    break;
+        synchronized (buyOrders) {
+            if(order.type().equals(Order.Type.BUY)) {
+                List<Order> vals = buyOrders.get(order.pricePerQuantity());
+                int index = -1;
+                for(int i=0; i<vals.size(); i++) {
+                    if(vals.get(i).equals(order)) {
+                        index = i;
+                        break;
+                    }
                 }
-            }
 
-            List<Order> copy = new ArrayList<>(vals);
-            copy.remove(index);
+                List<Order> copy = new ArrayList<>(vals);
+                copy.remove(index);
 
-            if(vals.size() > 1) {
-                buyOrders.put(order.pricePerQuantity(), copy);
-            } else {
-                buyOrders.remove(order.pricePerQuantity());
-            }
-            return true;
+                if(vals.size() > 1) {
+                    buyOrders.put(order.pricePerQuantity(), copy);
+                } else {
+                    buyOrders.remove(order.pricePerQuantity());
+                }
+                return true;
 
 //            if(vals != null) {
 //                for(int i=0; i<vals.size(); i++) {
@@ -76,25 +77,26 @@ public class OrderBook {
 //                    }
 //                }
 //            }
-        } else {
-            List<Order> vals = sellOrders.get(order.pricePerQuantity());
-            int index = -1;
-            for(int i=0; i<vals.size(); i++) {
-                if(vals.get(i).equals(order)) {
-                    index = i;
-                    break;
-                }
-            }
-
-            List<Order> copy = new ArrayList<>(vals);
-            copy.remove(index);
-
-            if(vals.size() > 1) {
-                sellOrders.put(order.pricePerQuantity(), copy);
             } else {
-                sellOrders.remove(order.pricePerQuantity());
+                List<Order> vals = sellOrders.get(order.pricePerQuantity());
+                int index = -1;
+                for(int i=0; i<vals.size(); i++) {
+                    if(vals.get(i).equals(order)) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                List<Order> copy = new ArrayList<>(vals);
+                copy.remove(index);
+
+                if(vals.size() > 1) {
+                    sellOrders.put(order.pricePerQuantity(), copy);
+                } else {
+                    sellOrders.remove(order.pricePerQuantity());
+                }
+                return true;
             }
-            return true;
         }
     }
 
@@ -168,70 +170,76 @@ public class OrderBook {
 
     public static StringBuilder getListedMatches(int botId, OrderBook book, boolean checker) {
 
-        StringBuilder builder = new StringBuilder();
-        for(List<Order> orders : book.getBuyOrders().values()) {
-            for(Order order : orders) {
-                if(order.botId() == botId) {
-                    if(checker) {
-                        builder.append(order).append("\n");
-                    } else {
-                        builder.append(order.cleanFormat()).append("\n");
+        synchronized (book.buyOrders) {
+            StringBuilder builder = new StringBuilder();
+            for(List<Order> orders : book.buyOrders.values()) {
+                for(Order order : orders) {
+                    if(order.botId() == botId) {
+                        if(checker) {
+                            builder.append(order).append("\n");
+                        } else {
+                            builder.append(order.cleanFormat()).append("\n");
+                        }
                     }
                 }
             }
-        }
 
-        for(List<Order> orders : book.getSellOrders().values()) {
-            for(Order order : orders) {
-                if(order.botId() == botId) {
-                    if(checker) {
-                        builder.append(order).append("\n");
-                    } else {
-                        builder.append(order.cleanFormat()).append("\n");
+            for(List<Order> orders : book.sellOrders.values()) {
+                for(Order order : orders) {
+                    if(order.botId() == botId) {
+                        if(checker) {
+                            builder.append(order).append("\n");
+                        } else {
+                            builder.append(order.cleanFormat()).append("\n");
+                        }
                     }
                 }
             }
+            return builder;
         }
-        return builder;
     }
 
     public static List<Order> getListedOrders(int botId, OrderBook book) {
-        List<Order> matchedOrders = new ArrayList<>();
+        synchronized (book.buyOrders) {
+            List<Order> matchedOrders = new ArrayList<>();
 
-        for(List<Order> orders : book.getBuyOrders().values()) {
-            for(Order order : orders) {
-                if(order.botId() == botId) {
-                    matchedOrders.add(order);
+            for(List<Order> orders : book.buyOrders.values()) {
+                for(Order order : orders) {
+                    if(order.botId() == botId) {
+                        matchedOrders.add(order);
+                    }
                 }
             }
-        }
 
-        for(List<Order> orders : book.getSellOrders().values()) {
-            for(Order order : orders) {
-                if(order.botId() == botId) {
-                    matchedOrders.add(order);
+            for(List<Order> orders : book.sellOrders.values()) {
+                for(Order order : orders) {
+                    if(order.botId() == botId) {
+                        matchedOrders.add(order);
+                    }
                 }
             }
-        }
 
-        return matchedOrders;
+            return matchedOrders;
+        }
     }
 
     public static boolean haveOrder(int botId, OrderBook book, int orderId) {
-        String list = getListedMatches(botId, book, true).toString();
-        String[] matches = list.split("\n");
-        List<Order> orders = new ArrayList<>();
-        for(String match : matches) {
-            orders.add(Order.toOrder(match));
+        synchronized (book.buyOrders) {
+            String list = getListedMatches(botId, book, true).toString();
+            String[] matches = list.split("\n");
+            List<Order> orders = new ArrayList<>();
+            for(String match : matches) {
+                orders.add(Order.toOrder(match));
 //            System.out.println("OrderId: " + Order.toOrder(match).orderId());
-        }
-
-        for(Order order : orders) {
-            if(order.orderId() == orderId) {
-                return true;
             }
+
+            for(Order order : orders) {
+                if(order.orderId() == orderId) {
+                    return true;
+                }
+            }
+            return false;
         }
-        return false;
     }
 
     @Override
