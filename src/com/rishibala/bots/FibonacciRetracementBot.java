@@ -196,16 +196,16 @@ public class FibonacciRetracementBot {
                     updateSwingLow(mean);
                 }
 
-                if(means.size() > 251) {
+                if(means.size() > 26) {
                     means.remove(0);
                 }
 
-                if(counter > 250) {
+                if(counter > 25) {
                     double[] levels = calculateFibonacciRetracement();
                     double buyLevel = levels[0]; // uses the 23.6% fibonacci retracement level
                     double sellLevel = levels[4]; // uses the 78.6% fibonacci retracement level
 
-                    if (currentSellPrice < (buyLevel - 0.9)) {
+                    if (currentSellPrice < (buyLevel - 1)) {
                         if(buyInit && (sellInit)) {
                             out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                             out.newLine();
@@ -215,7 +215,7 @@ public class FibonacciRetracementBot {
                             shares++;
                             pnl -= currentSellPrice;
                         }
-                    } else if (currentBuyPrice > (sellLevel + 0.9)) { //allows short selling
+                    } else if (currentBuyPrice > (sellLevel + 1)) { //allows short selling
                         if(buyInit && sellInit) {
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             out.newLine();
@@ -249,8 +249,8 @@ public class FibonacciRetracementBot {
     }
 
     private static double[] calculateFibonacciRetracement() {
-        if (means.size() < 250) {
-            return null; // no trades until after we have 1 full 250 (not enough data points)
+        if (means.size() < 25) {
+            return null; // no trades until after we have 25 full points (not enough data points)
         }
 
         if ((swingHigh == 0) || (swingLow == 0)) {
