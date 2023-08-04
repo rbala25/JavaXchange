@@ -108,9 +108,14 @@ class Bot implements Runnable{
 
                     for(Bot bot : bots) {
                         if(bot.botId != 1) {
-                            bot.out.write("SIGNALOVER:" + args[1] + ":" + args[2] + ":" + bot.user.getStockAmt() + ":" + bot.user.getProfit());
-                            bot.out.newLine();
-                            bot.out.flush();
+                            try {
+                                bot.out.write("SIGNALOVER:" + args[1] + ":" + args[2] + ":" + bot.user.getStockAmt() + ":" + bot.user.getProfit());
+                                bot.out.newLine();
+                                bot.out.flush();
+                            } catch(IOException e) {
+                                System.out.println("FAIL: ID: " + bot.botId);
+                                e.printStackTrace();
+                            }
                         }
                     }
                 } else {

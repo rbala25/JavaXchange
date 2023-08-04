@@ -283,9 +283,10 @@ public class EWMABot {
 //                    temp1 += 0.08;
 //                }
 
-                currentSellPrice -= 0.02;
-                temp -= 0.02;
-                if ((currentSellPrice < ewmaValue) && (counter > 100)) { //only can trade after the first 100 orders (not enough data points)
+                double temp1 = currentSellPrice - 0.03;
+                temp -= 0.08;
+
+                if ((temp1 < ewmaValue) && (counter > 100)) { //only can trade after the first 100 orders (not enough data points)
                     if(buyInit && sellInit) {
 //                        out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);

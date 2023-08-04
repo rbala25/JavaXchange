@@ -240,7 +240,7 @@ public class RSIBot {
                 double rsiValue = calculateRSI();
 
                 if(rsiValue != 0) {
-                    if ((rsiValue < 30) ) {
+                    if ((rsiValue < 44.5) ) {
                         if(buyInit && sellInit) {
                             out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                             out.newLine();
@@ -250,7 +250,7 @@ public class RSIBot {
                             shares++;
                             pnl -= currentSellPrice;
                         }
-                    } else if ((rsiValue > 70)) { //allows short selling
+                    } else if ((rsiValue > 62.5)) { //allows short selling
                         if(buyInit && sellInit) {
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             out.newLine();

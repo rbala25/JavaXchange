@@ -235,13 +235,15 @@ public class BollingerBandsBot {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
                 }
 
-                if(means.size() > 301) { //period of 300 at max
+                if(means.size() > 50) { //period of 50 at max
                     means.remove(0);
                 }
 
                 calculateBollingerBands();
+                double temp1 = currentSellPrice - 0.15;
+                double temp = currentBuyPrice + 0.07;
 
-                if (((currentSellPrice - 0.08) < LowerBand) && (LowerBand != 0d)) {
+                if ((temp1 < LowerBand) && (LowerBand != 0d)) {
                     if(buyInit && sellInit) {
                         out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.newLine();
@@ -251,7 +253,7 @@ public class BollingerBandsBot {
                         shares++;
                         pnl -= currentSellPrice;
                     }
-                } else if (((currentBuyPrice + 0.08) > UpperBand) && (UpperBand != 0d)) { //allows short selling
+                } else if ((temp > UpperBand) && (UpperBand != 0d)) { //allows short selling
                     if(buyInit && sellInit) {
                         out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                         out.newLine();
@@ -278,24 +280,24 @@ public class BollingerBandsBot {
     }
 
     private static void calculateBollingerBands() {
-        if (means.size() < 250) {
+        if (means.size() < 50) {
             return; //do not make any trades until we have a full period (not enough data points)
         }
 
         // SMA is middle band
         double sum = 0;
-        for (int i = means.size() - 250; i < means.size(); i++) {
+        for (int i = means.size() - 50; i < means.size(); i++) {
             sum += means.get(i);
         }
-        MiddleBand = sum / 250;
+        MiddleBand = sum / 50;
 
         // standard deviation
         double sumSquaredDifference = 0;
-        for (int i = means.size() - 250; i < means.size(); i++) {
+        for (int i = means.size() - 50; i < means.size(); i++) {
             double difference = means.get(i) - MiddleBand;
             sumSquaredDifference += difference * difference;
         }
-        double standardDeviation = Math.sqrt(sumSquaredDifference / (250 - 1));
+        double standardDeviation = Math.sqrt(sumSquaredDifference / (50 - 1));
 
         // upper and lower
         UpperBand = MiddleBand + (2 * standardDeviation);
