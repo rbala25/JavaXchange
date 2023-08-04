@@ -65,19 +65,18 @@ public class FibonacciRetracementBot {
                                 String[] serverArgs = serverMessage.split(":");
                                 double lastBuy = Double.parseDouble(serverArgs[1]);
                                 double lastSell = Double.parseDouble(serverArgs[2]);
-                                int tempProf = 0;
+                                shares = Integer.parseInt(serverArgs[3]);
+                                pnl = Double.parseDouble(serverArgs[4]);
+                                double tempProf = 0;
 
                                 if(shares < 0) { //for short selling
-                                    for(int i=1; i<=(shares * -1); i++) {
-                                        tempProf -= lastBuy;
-                                    }
+                                    tempProf =  shares * lastBuy;
                                 } else if(shares > 0) {
-                                    for(int i=1; i<=shares; i++) {
-                                        tempProf += lastSell;
-                                    }
+                                    tempProf =  shares * lastSell;
                                 }
 
                                 System.out.println("Bot " + user.getBotId());
+                                System.out.println("Final Shares: " + shares);
                                 System.out.printf("Total pnl: $%.2f", pnl + tempProf);
                                 over = true;
                                 break;
@@ -221,7 +220,7 @@ public class FibonacciRetracementBot {
                             shares++;
                             pnl -= currentSellPrice;
                         }
-                    } else if (currentBuyPrice > (sellLevel + 1)) { //allows short selling
+                    } else if (currentBuyPrice > (sellLevel + 1.3)) { //allows short selling
                         if(buyInit && sellInit) {
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             out.newLine();

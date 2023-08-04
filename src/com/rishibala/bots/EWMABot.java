@@ -62,22 +62,22 @@ public class EWMABot {
                         String serverMessage = in.readLine();
                         while(serverMessage != null) {
                             if(serverMessage.contains("SIGNALOVER")) {
+
                                 String[] serverArgs = serverMessage.split(":");
                                 double lastBuy = Double.parseDouble(serverArgs[1]);
                                 double lastSell = Double.parseDouble(serverArgs[2]);
-                                int tempProf = 0;
+                                shares = Integer.parseInt(serverArgs[3]);
+                                pnl = Double.parseDouble(serverArgs[4]);
+                                double tempProf = 0;
 
                                 if(shares < 0) { //for short selling
-                                    for(int i=1; i<=(shares * -1); i++) {
-                                        tempProf -= lastBuy;
-                                    }
+                                    tempProf =  shares * lastBuy;
                                 } else if(shares > 0) {
-                                    for(int i=1; i<=shares; i++) {
-                                        tempProf += lastSell;
-                                    }
+                                    tempProf =  shares * lastSell;
                                 }
 
                                 System.out.println("Bot " + user.getBotId());
+                                System.out.println("Final Shares: " + shares);
                                 System.out.printf("Total pnl: $%.2f", pnl + tempProf);
                                 over = true;
                                 break;
@@ -108,67 +108,43 @@ public class EWMABot {
                     String str = in.readLine();
                 }
 
-//                out.println("EWMAReReq");
-//                out.flush();
-//                try {
-//
-//                    String serverMessage = "";
-//                    int counter3 = 0;
-//                    boolean counter3b = false;
-//
-//                    while(!in.ready()) {
-//                        try {
-//                            TimeUnit.MILLISECONDS.sleep(1);
-//                            if(in.ready()) {
-//                                break;
-//                            }
-//                            counter3++;
-//
-//                            if(counter3 == 10) {
-//                                System.out.println("counter 3 = 10");
-//                                counter3b = true;
-//                                break;
-//                            }
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//
-//                    if(!counter3b) {
-//                        serverMessage = in.readLine();
-//                    }
-//
-//                    while(serverMessage != "") {
-//                        if(serverMessage.contains(":")) {
-//                            user = User.unStringWithProfit(serverMessage);
-//                            break;
-//                        }
-//
-//                        int counter2 = 0;
-//                        while(!in.ready()) {
-//                            try {
-//                                TimeUnit.MILLISECONDS.sleep(1);
-//                                if(in.ready()) {
-//                                    break;
-//                                }
-//                                counter2++;
-//
-//                                if(counter2 == 10) {
-//                                    break;
-//                                }
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                        if(in.ready()) {
-//                            serverMessage = in.readLine();
-//                        } else {
-//                            break;
-//                        }
-//                    }
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+                try {
+                    out.write("EWMAReReq");
+                    out.newLine();
+                    out.flush();
+
+                    String serverMessage = "";
+                    int millis = 0;
+                    while (true) {
+
+                        if (in.ready()) {
+                            serverMessage = in.readLine();
+
+                            if (serverMessage != null) {
+                                if (serverMessage.contains(":")) {
+                                    String[] argus = serverMessage.split(":");
+                                    shares = Integer.parseInt(argus[0]);
+                                    pnl = Double.parseDouble(argus[1]);
+                                    break;
+                                }
+                            }
+                        } else {
+                            try {
+                                millis += 2;
+                                TimeUnit.MILLISECONDS.sleep(2);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        if (millis == 10) {
+                            System.out.println("millis = 10 -> fail");
+                            break;
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
 //                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //                out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
@@ -322,20 +298,11 @@ public class EWMABot {
                     }
                 } else if ((temp > ewmaValue) && (counter > 100)) { //allows short selling
                     if(buyInit && sellInit) {
-                        if(user.getStockAmt() <= 0) {
-//                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        }
-                        if(user.getStockAmt() >= 1) {
-//                            out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        }
+//                      out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
 
                         shares--;
                         pnl += currentBuyPrice;

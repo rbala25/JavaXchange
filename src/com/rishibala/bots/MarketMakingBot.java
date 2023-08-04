@@ -134,7 +134,7 @@ public class MarketMakingBot {
     }
 
     private static Map<LocalDateTime, Double> parseConstantData() {
-        Map<LocalDateTime, Double> data = new TreeMap<>(); //first 10000 data points
+        Map<LocalDateTime, Double> data = new TreeMap<>(); //first 12000 data points
 
         try {
 
@@ -168,7 +168,7 @@ public class MarketMakingBot {
 
                 data.put(dateTime, price);
 
-                if(data.size() >= 10000) {
+                if(data.size() >= 12000) {
                     break;
                 }
             }

@@ -22,7 +22,6 @@ class Bot implements Runnable{
         this.user = user;
 
         try {
-            socket.setSoTimeout(2500);
             out = new BufferedWriter(new PrintWriter(socket.getOutputStream()));
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //            in = new Scanner(socket.getInputStream());
@@ -52,17 +51,22 @@ class Bot implements Runnable{
 //                }
 
                 if(recievedMessage.contains("bookReq")) {
-                    if(botId != 1) {
-                        List<Order> orders = OrderBook.getListedOrders(botId, orderBook);
-                        for(Order thisOrder : orders) {
-                            orderBook.removeOrder(thisOrder.orderId());
-                        }
+                    List<Order> orders = OrderBook.getListedOrders(botId, orderBook);
+                    for(Order thisOrder : orders) {
+                        orderBook.removeOrder(thisOrder.orderId());
                     }
 
                     out.write(orderBook.serialize().toString());
                     out.newLine();
                     out.flush();
                     continue;
+                }
+
+                if(recievedMessage.contains("EWMAReReq")) {
+                   out.write(user.getStockAmt() + ":" + user.getProfit());
+                   out.newLine();
+                   out.flush();
+                   continue;
                 }
 
                 if (recievedMessage.toLowerCase().contains("cancel")) {
@@ -104,7 +108,7 @@ class Bot implements Runnable{
 
                     for(Bot bot : bots) {
                         if(bot.botId != 1) {
-                            bot.out.write("SIGNALOVER:" + args[1] + ":" + args[2]);
+                            bot.out.write("SIGNALOVER:" + args[1] + ":" + args[2] + ":" + bot.user.getStockAmt() + ":" + bot.user.getProfit());
                             bot.out.newLine();
                             bot.out.flush();
                         }
