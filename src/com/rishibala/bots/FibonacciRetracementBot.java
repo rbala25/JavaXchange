@@ -202,11 +202,11 @@ public class FibonacciRetracementBot {
 
                 if(counter > 250) {
                     double[] levels = calculateFibonacciRetracement();
-                    double buyLevel = levels[2]; // uses the 50% fibonacci retracement level
+                    double buyLevel = levels[0]; // uses the 23.6% fibonacci retracement level
                     double sellLevel = levels[4]; // uses the 78.6% fibonacci retracement level
 
-                    if (currentSellPrice < buyLevel) {
-                        if(buyInit && sellInit) {
+                    if (currentSellPrice < (buyLevel - 0.9)) {
+                        if(buyInit && (sellInit)) {
                             out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                             out.newLine();
                             out.flush();
@@ -215,7 +215,7 @@ public class FibonacciRetracementBot {
                             shares++;
                             pnl -= currentSellPrice;
                         }
-                    } else if (currentBuyPrice > (sellLevel + 0.38)) { //allows short selling
+                    } else if (currentBuyPrice > (sellLevel + 0.9)) { //allows short selling
                         if(buyInit && sellInit) {
                             out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                             out.newLine();
