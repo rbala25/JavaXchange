@@ -17,6 +17,7 @@ public class MarketMakingBot {
     private static final String API_KEY = config.API_KEY;
     private static Socket socket;
     private static PrintWriter out;
+    private static BufferedReader in;
 
     public static void main(String[] args) {
         Map<LocalDateTime, Double> data = parseConstantData();
@@ -30,7 +31,7 @@ public class MarketMakingBot {
 
         try {
             socket = new Socket("localhost", 5000); //change localhost if on different ip
-//            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
             Map<LocalDateTime, Double> data1 = new TreeMap<>(data);
@@ -53,8 +54,8 @@ public class MarketMakingBot {
 //                out.println("checkerTrueListed");
 
                 //0.11554744394 is 1/10th of the Coefficient of Variation in calculateMetrics.java
-                out.println("0, " + "BUY" + ", " + (price - 0.11554744394) + ", 1");
-                out.println("0, " + "SELL" + ", " + (price + 0.11554744394) + ", 1");
+                out.println("1, " + "BUY" + ", " + (price - 0.11554744394) + ", 1");
+                out.println("1, " + "SELL" + ", " + (price + 0.11554744394) + ", 1");
 
                 out.println("close");
                 out.flush();
@@ -62,13 +63,42 @@ public class MarketMakingBot {
                 lastSell = price + 0.11554744394;
                 lastBuy = price - 0.11554744394;
             }
+
+            while(in.ready()) {
+                String str = in.readLine();
+            }
+
             out.println("MMBOT_OVER:" + lastBuy + ":" + lastSell);
+
+            String serverMessage = in.readLine();
+
+            if(serverMessage.contains("SIGNALOVER")) {
+                String[] serverArgs = serverMessage.split(":");
+//                double buy = Double.parseDouble(serverArgs[1]);
+//                double sell = Double.parseDouble(serverArgs[2]);
+                int shares = Integer.parseInt(serverArgs[3]);
+                double pnl = Double.parseDouble(serverArgs[4]);
+                double tempProf = 0;
+
+                if(shares < 0) { //for short selling
+                    tempProf =  shares * lastSell;
+                } else if(shares > 0) {
+                    tempProf =  shares * lastBuy;
+                }
+
+                System.out.println("-".repeat(30));
+                System.out.println("Market Maker");
+                System.out.println("Final Shares: " + shares);
+                System.out.printf("Total pnl: $%.2f", (pnl + tempProf));
+                System.out.println();
+            }
 
         } catch(IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 out.close();
+                in.close();
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -177,7 +207,7 @@ public class MarketMakingBot {
 
                 data.put(dateTime, price);
 
-                if(data.size() >= 300) {
+                if(data.size() >= 12000) {
                     break;
                 }
             }

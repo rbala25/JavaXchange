@@ -71,17 +71,20 @@ public class SMABot {
                                 double tempProf = 0;
 
                                 if(shares < 0) { //for short selling
-                                    tempProf =  shares * lastBuy;
-                                } else if(shares > 0) {
                                     tempProf =  shares * lastSell;
+                                } else if(shares > 0) {
+                                    tempProf =  shares * lastBuy;
                                 }
 
+                                System.out.println("-".repeat(30));
                                 System.out.println("Bot " + user.getBotId());
                                 System.out.println("Final Shares: " + shares);
-                                System.out.printf("Total pnl: $%.2f", pnl + tempProf);
+                                System.out.printf("Total pnl: $%.2f", (pnl + tempProf));
+                                System.out.println();
                                 over = true;
                                 break;
                             }
+
                             if(in.ready()) {
                                 serverMessage = in.readLine();
                             } else {
@@ -263,8 +266,8 @@ public class SMABot {
                 }
 
                 double smaValue = calculateSMA();
-                double temp1 = currentSellPrice + 0.4;
-                double temp = currentBuyPrice - 0.75;
+                double temp1 = currentSellPrice + 0.2;
+                double temp = currentBuyPrice - 0.65;
 
 
                 if ((temp1 < smaValue) && (counter > 100)) { //only can trade after the first 100 orders (not enough data points)

@@ -70,14 +70,16 @@ public class RSIBot {
                                 double tempProf = 0;
 
                                 if(shares < 0) { //for short selling
-                                    tempProf =  shares * lastBuy;
-                                } else if(shares > 0) {
                                     tempProf =  shares * lastSell;
+                                } else if(shares > 0) {
+                                    tempProf =  shares * lastBuy;
                                 }
 
+                                System.out.println("-".repeat(30));
                                 System.out.println("Bot " + user.getBotId());
                                 System.out.println("Final Shares: " + shares);
-                                System.out.printf("Total pnl: $%.2f", pnl + tempProf);
+                                System.out.printf("Total pnl: $%.2f", (pnl + tempProf));
+                                System.out.println();
                                 over = true;
                                 break;
                             }

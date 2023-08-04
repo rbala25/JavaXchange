@@ -2,9 +2,7 @@ package com.rishibala.server;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 class Bot implements Runnable{
     private final Socket socket;
@@ -14,6 +12,7 @@ class Bot implements Runnable{
     private BufferedWriter out;
     private BufferedReader in;
     private static final List<Bot> bots = new ArrayList<>();
+    private boolean over = false;
 
     Bot(Socket socket, int botId, OrderBook orderBook, User user) {
         this.socket = socket;
@@ -107,22 +106,32 @@ class Bot implements Runnable{
                     String[] args = recievedMessage.split(":");
 
                     for(Bot bot : bots) {
-                        if(bot.botId != 1) {
-                            try {
-                                bot.out.write("SIGNALOVER:" + args[1] + ":" + args[2] + ":" + bot.user.getStockAmt() + ":" + bot.user.getProfit());
-                                bot.out.newLine();
-                                bot.out.flush();
-                                bot.quit();
+//                        if(bot.botId != 1) {
+                        try {
 
-                            } catch(IOException e) {
-                                System.out.println("FAIL: ID: " + bot.botId);
-                                e.printStackTrace();
-                            }
+                            bot.out.write("SIGNALOVER:" + args[1] + ":" + args[2] + ":" + bot.user.getStockAmt() + ":" + bot.user.getProfit());
+                            bot.out.newLine();
+                            bot.out.flush();
+                            over = true;
+
+                        } catch(IOException e) {
+                            System.out.println("FAIL: ID: " + bot.botId);
+                            e.printStackTrace();
                         }
+//                        }
+                    }
+
+                    if(over) {
+                        break;
                     }
                 } else {
+                    if(over) {
+                        break;
+                    }
+
                     Order order = Order.toOrder(recievedMessage);
                     handleOrder(order);
+
                 }
             }
         } catch (IOException e) {
@@ -140,9 +149,9 @@ class Bot implements Runnable{
     }
 
     private void handleOrder(Order order) {
-        if(order.botId() == 0) {
+        if(order.botId() == 1) {
             if(order.type().equals(Order.Type.BUY)) {
-                List<Order> orders = OrderBook.getListedOrders(0, orderBook);
+                List<Order> orders = OrderBook.getListedOrders(1, orderBook);
                 for(Order thisOrder : orders) {
                     orderBook.removeOrder(thisOrder.orderId());
                 }
@@ -176,9 +185,6 @@ class Bot implements Runnable{
     }
 
     private void notifyBot(Set<Order> match) {
-        if(botId == 1) {
-            return;
-        }
 
         Object[] match1 = match.toArray();
         Order p1 = (Order) match1[0];
@@ -193,6 +199,18 @@ class Bot implements Runnable{
         } else {
             bot1 = p2;
             bot2 = p1;
+        }
+
+        if(botId == 1) {
+            if(bot1.type().equals(Order.Type.BUY)) {
+                user.updateStockAmt(1);
+                user.updateProfit(bot1.price() * -1);
+            } else {
+                user.updateStockAmt(-1);
+                user.updateProfit(bot2.price());
+            }
+
+            return;
         }
 
         if(bot1.type().equals(Order.Type.BUY)) {
@@ -243,7 +261,7 @@ class Bot implements Runnable{
          e.printStackTrace();
      }
 
-        if(bot2.botId() != 0) {
+        if(bot2.botId() != 1) {
             getBot(bot2.botId()).notifyBot2(alt, bot2, bot1);
         }
 
@@ -266,18 +284,6 @@ class Bot implements Runnable{
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void quit() {
-        try {
-            in.close();
-            out.close();
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        System.exit(0);
     }
 
     private static Bot getBot(int botId) {

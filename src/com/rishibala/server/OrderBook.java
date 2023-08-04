@@ -41,7 +41,7 @@ public class OrderBook {
                 ordersMap.put(order.pricePerQuantity(), List.of(order));
             }
 
-            if(order.botId() != 0) {
+            if(order.botId() != 1) {
                 System.out.println("New Order: " + order);
             }
         }
