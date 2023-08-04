@@ -120,7 +120,7 @@ public class EWMABot extends Bot{
                     bot.means.remove(0);
                 }
 
-                double ewmaValue = bot.calculate();
+                double ewmaValue = bot.calculate()[0];
 
                 double temp = currentBuyPrice;
 //                double temp1 = currentSellPrice;
@@ -164,7 +164,7 @@ public class EWMABot extends Bot{
     }
 
     @Override
-    protected double calculate() {
+    protected double[] calculate() {
         double alpha = 0.2;
         if(means.size() > 0) {
             double ewma = means.get(0);
@@ -172,8 +172,8 @@ public class EWMABot extends Bot{
                 double currentPrice = means.get(i);
                 ewma = alpha * currentPrice + (1 - alpha) * ewma;
             }
-            return ewma;
+            return new double[]{ewma};
         }
-        return 0;
+        return new double[]{0};
     }
 }

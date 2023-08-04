@@ -29,7 +29,7 @@ public abstract class Bot {
     protected int botId;
 
 
-    protected abstract double calculate();
+    protected abstract double[] calculate();
 
     protected void writeSell(double currentBuyPrice, int currentBuyQty) {
         bot.write(bot.botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);

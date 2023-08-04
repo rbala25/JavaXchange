@@ -27,6 +27,7 @@ public class BollingerBandsBot extends Bot{
             bot.initalCheck();
 
             while(true) {
+
                 try {
 //                    Thread.sleep(25);
                     TimeUnit.MILLISECONDS.sleep(70);
@@ -123,9 +124,9 @@ public class BollingerBandsBot extends Bot{
     }
 
     @Override
-    protected double calculate() {
+    protected double[] calculate() {
         if (means.size() < 50) {
-            return -1; //do not make any trades until we have a full period (not enough data points)
+            return null; //do not make any trades until we have a full period (not enough data points)
         }
 
         // SMA is middle band
@@ -147,6 +148,6 @@ public class BollingerBandsBot extends Bot{
         UpperBand = MiddleBand + (2 * standardDeviation);
         LowerBand = MiddleBand - (2 * standardDeviation);
         
-        return -1;
+        return null;
     }
 }
