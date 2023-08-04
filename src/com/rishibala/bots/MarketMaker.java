@@ -20,7 +20,20 @@ public class MarketMaker {
     private static BufferedReader in;
 
     public static void main(String[] args) {
-        Map<LocalDateTime, Double> data = parseConstantData();
+        Scanner s = new Scanner(System.in);
+        int dataSize = 0;
+
+        while(!(dataSize > 0)) {
+            System.out.print("Enter Size: ");
+            try {
+                dataSize = Integer.parseInt(s.nextLine());
+                System.out.println();
+            } catch(NumberFormatException ignored) {
+            }
+        }
+
+
+        Map<LocalDateTime, Double> data = parseConstantData(dataSize);
 //        for (LocalDateTime date : data.keySet()) {
 //            double price = data.get(date);
 //            System.out.println(date + ": " + price);
@@ -172,8 +185,8 @@ public class MarketMaker {
         return data;
     }
 
-    private static Map<LocalDateTime, Double> parseConstantData() {
-        Map<LocalDateTime, Double> data = new TreeMap<>(); //first 12000 data points
+    private static Map<LocalDateTime, Double> parseConstantData(int size) {
+        Map<LocalDateTime, Double> data = new TreeMap<>(); //first (size) data points
 
         try {
 
@@ -207,7 +220,7 @@ public class MarketMaker {
 
                 data.put(dateTime, price);
 
-                if(data.size() >= 12000) {
+                if(data.size() >= size) {
                     break;
                 }
             }
