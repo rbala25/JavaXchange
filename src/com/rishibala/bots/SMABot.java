@@ -49,7 +49,7 @@ public class SMABot {
 
                 try {
 //                    Thread.sleep(25);
-                    TimeUnit.MILLISECONDS.sleep(60);
+                    TimeUnit.MILLISECONDS.sleep(70);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
