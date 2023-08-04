@@ -134,7 +134,7 @@ public class MarketMakingBot {
     }
 
     private static Map<LocalDateTime, Double> parseConstantData() {
-        Map<LocalDateTime, Double> data = new TreeMap<>();
+        Map<LocalDateTime, Double> data = new TreeMap<>(); //first 10000 data points
 
         try {
 
@@ -167,6 +167,10 @@ public class MarketMakingBot {
                 double price = Double.parseDouble(closeHalf);
 
                 data.put(dateTime, price);
+
+                if(data.size() >= 10000) {
+                    break;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
