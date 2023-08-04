@@ -59,6 +59,15 @@ class Bot implements Runnable{
                         }
                     }
 
+                    if(botId == 2) {
+                        System.out.println("here");
+                        out.write(orderBook.serialize().toString());
+                        System.out.println("here1");
+                        out.newLine();
+                        out.flush();
+                        continue;
+                    }
+
                     out.write(orderBook.serialize().toString());
                     out.newLine();
                     out.flush();

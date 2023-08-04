@@ -285,7 +285,7 @@ public class EWMABot {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
                 }
 
-                if(means.size() > 5000) { //period of 5000
+                if(means.size() > 7001) { //period of 7000
                     means.remove(0);
                 }
 

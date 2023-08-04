@@ -154,8 +154,12 @@ public class OrderBook {
                                 if(order.quantity() >= buy.quantity()) {
                                     if(!matchGot) {
                                         if(buy.botId() != order.botId()) {
-                                            matches.add(new HashSet<>(Set.of(order, buy)));
-                                            matchGot = true;
+                                            try {
+                                                matches.add(new HashSet<>(Set.of(order, buy)));
+                                                matchGot = true;
+                                            } catch(IllegalArgumentException e) {
+                                                e.printStackTrace();
+                                            }
                                         }
                                     }
                                 }

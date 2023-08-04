@@ -140,7 +140,7 @@ public class FibonacciRetracementBot {
 
                         if (millis == 10) {
                             System.out.println("millis = 10 -> fail");
-                            book = last;
+                            afterOrder = true;
                             break;
                         }
                     }
@@ -148,8 +148,9 @@ public class FibonacciRetracementBot {
                     e.printStackTrace();
                 }
 
-                boolean buyInit = false;
-                boolean sellInit = false;
+                if(afterOrder) {
+                    continue;
+                }
 
                 double currentBuyPrice;
                 double currentSellPrice;
@@ -166,34 +167,20 @@ public class FibonacciRetracementBot {
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
 
-                if(!afterOrder) {
-                    for(List<Order> buys : book.getBuyOrders().values()) {
-                        for(Order order : buys) {
-                            currentBuyPrice = order.price();
-                            currentBuyQty = order.quantity();
-                            lastBuy = order;
-                            buyInit = true;
-                        }
-                    }
-                    for(List<Order> sells : book.getSellOrders().values()) {
-                        for(Order order : sells) {
-                            if(order.price() < 100) {
-                                System.out.println("PROBLEM: " + order);
-                            }
-
-                            currentSellPrice = order.price();
-                            currentSellQty = order.quantity();
-                            lastSell = order;
-                            sellInit = true;
-                        }
-                    }
-                }
 
                 if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
                     double mean = ((currentSellPrice + currentBuyPrice) / 2);
                     means.add(mean);
                     updateSwingHigh(mean);
                     updateSwingLow(mean);
+
+                    for(List<Order> orders : book.getBuyOrders().values()) {
+                        lastBuy = orders.get(0);
+                    }
+
+                    for(List<Order> orders : book.getSellOrders().values()) {
+                        lastSell = orders.get(0);
+                    }
                 }
 
                 if(means.size() > 251) {
@@ -206,25 +193,21 @@ public class FibonacciRetracementBot {
                     double sellLevel = levels[4]; // uses the 78.6% fibonacci retracement level
 
                     if (currentSellPrice < buyLevel) {
-                        if(buyInit && sellInit) {
-                            out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                        out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
 
-                            shares++;
-                            pnl -= currentSellPrice;
-                        }
+                        shares++;
+                        pnl -= currentSellPrice;
                     } else if (currentBuyPrice > (sellLevel + 0.38)) { //allows short selling
-                        if(buyInit && sellInit) {
-                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
 
-                            shares--;
-                            pnl += currentBuyPrice;
-                        }
+                        shares--;
+                        pnl += currentBuyPrice;
                     }
 
                     System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);

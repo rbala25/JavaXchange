@@ -136,7 +136,7 @@ public class RSIBot {
 
                         if (millis == 10) {
                             System.out.println("millis = 10 -> fail");
-                            book = last;
+                            afterOrder = true;
                             break;
                         }
                     }
@@ -144,8 +144,9 @@ public class RSIBot {
                     e.printStackTrace();
                 }
 
-                boolean buyInit = false;
-                boolean sellInit = false;
+                if(afterOrder) {
+                    continue;
+                }
 
                 double currentBuyPrice;
                 double currentSellPrice;
@@ -162,60 +163,41 @@ public class RSIBot {
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
 
-                if(!afterOrder) {
-                    for(List<Order> buys : book.getBuyOrders().values()) {
-                        for(Order order : buys) {
-                            currentBuyPrice = order.price();
-                            currentBuyQty = order.quantity();
-                            lastBuy = order;
-                            buyInit = true;
-                        }
-                    }
-                    for(List<Order> sells : book.getSellOrders().values()) {
-                        for(Order order : sells) {
-                            if(order.price() < 100) {
-                                System.out.println("PROBLEM: " + order);
-                            }
-
-                            currentSellPrice = order.price();
-                            currentSellQty = order.quantity();
-                            lastSell = order;
-                            sellInit = true;
-                        }
-                    }
-                }
-
                 if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
+
+                    for(List<Order> orders : book.getBuyOrders().values()) {
+                        lastBuy = orders.get(0);
+                    }
+
+                    for(List<Order> orders : book.getSellOrders().values()) {
+                        lastSell = orders.get(0);
+                    }
                 }
 
-                if(means.size() > 5000) { //period of 5000
+                if(means.size() > 251) { //period is at max 250
                     means.remove(0);
                 }
 
                 double rsiValue = calculateRSI();
 
                 if(rsiValue != 0) {
-                    if ((rsiValue < 30) ) {
-                        if(buyInit && sellInit) {
-                            out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                    if ((rsiValue <= 42) ) {
+                        out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
 
-                            shares++;
-                            pnl -= currentSellPrice;
-                        }
-                    } else if ((rsiValue > 70)) { //allows short selling
-                        if(buyInit && sellInit) {
-                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                            out.newLine();
-                            out.flush();
-                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        shares++;
+                        pnl -= currentSellPrice;
+                    } else if ((rsiValue >= 60)) { //allows short selling
+                        out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
 
-                            shares--;
-                            pnl += currentBuyPrice;
-                        }
+                        shares--;
+                        pnl += currentBuyPrice;
                     }
                 }
 
