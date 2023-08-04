@@ -21,6 +21,7 @@ public class RSIBot {
     private static boolean afterOrder = false;
     private static int shares = 0;
     private static double pnl = 0;
+    private static boolean over = false;
 
     public static void main(String[] args) {
         int counter = 1;
@@ -74,6 +75,7 @@ public class RSIBot {
 
                                 System.out.println("Bot " + user.getBotId());
                                 System.out.printf("Total pnl: $%.2f", pnl + tempProf);
+                                over = true;
                                 break;
                             }
                             if(in.ready()) {
@@ -88,6 +90,10 @@ public class RSIBot {
                                     break;
                                 }
                             }
+                        }
+
+                        if(over) {
+                            break;
                         }
                     }
                 } catch (IOException e) {
