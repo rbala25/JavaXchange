@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 public class MarketMakingBot {
 
     private static final String API_KEY = config.API_KEY;
+    private static Socket socket;
+    private static PrintWriter out;
 
     public static void main(String[] args) {
         Map<LocalDateTime, Double> data = parseConstantData();
@@ -27,9 +29,9 @@ public class MarketMakingBot {
         System.out.println("Size: " + size);
 
         try {
-            Socket socket = new Socket("localhost", 5000); //change localhost if on different ip
+            socket = new Socket("localhost", 5000); //change localhost if on different ip
 //            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            out = new PrintWriter(socket.getOutputStream(), true);
 
             Map<LocalDateTime, Double> data1 = new TreeMap<>(data);
             var keys = data1.keySet().toArray();
@@ -64,6 +66,13 @@ public class MarketMakingBot {
 
         } catch(IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                out.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -168,7 +177,7 @@ public class MarketMakingBot {
 
                 data.put(dateTime, price);
 
-                if(data.size() >= 12000) {
+                if(data.size() >= 300) {
                     break;
                 }
             }

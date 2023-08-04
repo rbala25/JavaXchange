@@ -22,6 +22,9 @@ public class RSIBot {
     private static int shares = 0;
     private static double pnl = 0;
     private static boolean over = false;
+    private static Socket socket;
+    private static BufferedReader in;
+    private static BufferedWriter out;
 
     public static void main(String[] args) {
         int counter = 1;
@@ -29,9 +32,9 @@ public class RSIBot {
         User user = new User();
 
         try {
-            Socket socket = new Socket("localhost", 5000); //change localhost if on different ip
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            BufferedWriter out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
+            socket = new Socket("localhost", 5000); //change localhost if on different ip
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
 
             try {
                 String serverMessage = in.readLine();
@@ -273,6 +276,14 @@ public class RSIBot {
             }
         } catch(IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+                out.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }

@@ -112,6 +112,8 @@ class Bot implements Runnable{
                                 bot.out.write("SIGNALOVER:" + args[1] + ":" + args[2] + ":" + bot.user.getStockAmt() + ":" + bot.user.getProfit());
                                 bot.out.newLine();
                                 bot.out.flush();
+                                bot.quit();
+
                             } catch(IOException e) {
                                 System.out.println("FAIL: ID: " + bot.botId);
                                 e.printStackTrace();
@@ -266,6 +268,18 @@ class Bot implements Runnable{
         }
     }
 
+    private void quit() {
+        try {
+            in.close();
+            out.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.exit(0);
+    }
+
     private static Bot getBot(int botId) {
         for(Bot bot : bots) {
             if(bot.botId == botId) {
@@ -274,4 +288,5 @@ class Bot implements Runnable{
         }
         return null;
     }
+
 }
