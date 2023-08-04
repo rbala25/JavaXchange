@@ -20,7 +20,6 @@ public class FibonacciRetracementBot extends Bot{
 
         try {
             bot = new FibonacciRetracementBot();
-            FibonacciRetracementBot fibBot = new FibonacciRetracementBot();
             bot.socket = new Socket("localhost", 5000); //change localhost if on different ip
             bot.in = new BufferedReader(new InputStreamReader(bot.socket.getInputStream()));
             bot.out = new BufferedWriter(new PrintWriter(bot.socket.getOutputStream(), true));
@@ -89,6 +88,8 @@ public class FibonacciRetracementBot extends Bot{
                 if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
                     double mean = ((currentSellPrice + currentBuyPrice) / 2);
                     bot.means.add(mean);
+
+                    FibonacciRetracementBot fibBot = (FibonacciRetracementBot) bot;
                     fibBot.updateSwingHigh(mean);
                     fibBot.updateSwingLow(mean);
                 }
@@ -187,7 +188,7 @@ public class FibonacciRetracementBot extends Bot{
         if(means.size() >= 250) {
             periodData = means.subList((means.size() - 250), means.size() - 1);
         } else if(means.size() == 1) {
-            swingHigh = means.get(0);
+            swingLow = means.get(0);
             return;
         } else {
             periodData = means.subList(0, means.size() - 1);

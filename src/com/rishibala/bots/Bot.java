@@ -21,12 +21,12 @@ public abstract class Bot {
     protected int shares = 0;
     protected double pnl = 0;
     protected boolean over = false;
+    protected static Bot bot;
+    protected int botId;
+    protected Socket socket;
     protected BufferedReader in;
     protected BufferedWriter out;
     protected boolean afterOrder = false;
-    protected Socket socket;
-    protected static Bot bot;
-    protected int botId;
 
 
     protected abstract double[] calculate();
