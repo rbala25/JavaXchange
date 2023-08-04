@@ -106,6 +106,44 @@ public class BollingerBandsBot {
                     String str = in.readLine();
                 }
 
+                try {
+                    out.write("EWMAReReq");
+                    out.newLine();
+                    out.flush();
+
+                    String serverMessage = "";
+                    int millis = 0;
+                    while (true) {
+
+                        if (in.ready()) {
+                            serverMessage = in.readLine();
+
+                            if (serverMessage != null) {
+                                if (serverMessage.contains(":")) {
+                                    String[] argus = serverMessage.split(":");
+                                    shares = Integer.parseInt(argus[0]);
+                                    pnl = Double.parseDouble(argus[1]);
+                                    break;
+                                }
+                            }
+                        } else {
+                            try {
+                                millis += 2;
+                                TimeUnit.MILLISECONDS.sleep(2);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        if (millis == 10) {
+                            System.out.println("millis = 10 -> fail");
+                            break;
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 OrderBook book = new OrderBook();
                 try {
 
