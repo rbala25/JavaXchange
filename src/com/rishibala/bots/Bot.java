@@ -1,4 +1,4 @@
-package com.rishibala.tempBots;
+package com.rishibala.bots;
 
 import com.rishibala.server.Order;
 import com.rishibala.server.OrderBook;
