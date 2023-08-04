@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 public class SMABot {
     //Simple moving average calculations
 
+    private static final List<Double> periodBuy = new ArrayList<>();
+    private static final List<Double> periodSell = new ArrayList<>();
     private static final List<Double> means = new ArrayList<>();
     private static Order lastBuy;
     private static Order lastSell;
@@ -136,7 +138,7 @@ public class SMABot {
 
                         if (millis == 10) {
                             System.out.println("millis = 10 -> fail");
-                            afterOrder = true;
+                            book = last;
                             break;
                         }
                     }
@@ -144,9 +146,29 @@ public class SMABot {
                     e.printStackTrace();
                 }
 
-                if(afterOrder) {
-                    continue;
+                for(List<Order> buys : book.getBuyOrders().values()) {
+                    for(Order order : buys) {
+                        if(periodBuy.size() > 2000) {
+                            periodBuy.add(order.price());
+                            periodBuy.remove(0);
+                        } else {
+                            periodBuy.add(order.price());
+                        }
+                    }
                 }
+                for(List<Order> sells : book.getSellOrders().values()) {
+                    for(Order order : sells) {
+                        if(periodSell.size() > 2000) {
+                            periodSell.add(order.price());
+                            periodSell.remove(0);
+                        } else {
+                            periodSell.add(order.price());
+                        }
+                    }
+                }
+
+                boolean buyInit = false;
+                boolean sellInit = false;
 
                 double currentBuyPrice;
                 double currentSellPrice;
@@ -163,40 +185,58 @@ public class SMABot {
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
 
-                if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
-                    means.add((currentSellPrice + currentBuyPrice) / 2);
-
-                    for(List<Order> orders : book.getBuyOrders().values()) {
-                        lastBuy = orders.get(0);
+                if(!afterOrder) {
+                    for(List<Order> buys : book.getBuyOrders().values()) {
+                        for(Order order : buys) {
+                            currentBuyPrice = order.price();
+                            currentBuyQty = order.quantity();
+                            lastBuy = order;
+                            buyInit = true;
+                        }
                     }
+                    for(List<Order> sells : book.getSellOrders().values()) {
+                        for(Order order : sells) {
+                            if(order.price() < 100) {
+                                System.out.println("PROBLEM: " + order);
+                            }
 
-                    for(List<Order> orders : book.getSellOrders().values()) {
-                        lastSell = orders.get(0);
+                            currentSellPrice = order.price();
+                            currentSellQty = order.quantity();
+                            lastSell = order;
+                            sellInit = true;
+                        }
                     }
                 }
 
-                if(means.size() > 31) { //period of 30 at max
+                if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
+                    means.add((currentSellPrice + currentBuyPrice) / 2);
+                }
+
+                if(means.size() > 31) {  //period of 30 at max
                     means.remove(0);
                 }
 
-
                 double smaValue = calculateSMA();
 
-                if ((currentSellPrice < smaValue) && (counter > 31)) { //only can trade after the first 30 orders (not enough data points)
-                    out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                    out.newLine();
-                    out.flush();
-                    System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                if ((currentSellPrice < smaValue) && (counter > 30)) { //only can trade after the first 30 orders (not enough data points)
+                    if(buyInit && sellInit) {
+                        out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
 
-                    shares++;
-                    pnl -= currentSellPrice;
-                } else if ((currentBuyPrice > smaValue) && (counter > 31)) { //allows short selling
-                    out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                    out.newLine();
-                    out.flush();
-                    System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                    shares--;
-                    pnl += currentBuyPrice;
+                        shares++;
+                        pnl -= currentSellPrice;
+                    }
+                } else if ((currentBuyPrice > smaValue) && (counter > 30)) { //allows short selling
+                    if(buyInit && sellInit) {
+                        out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        shares--;
+                        pnl += currentBuyPrice;
+                    }
                 }
 
                 System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);

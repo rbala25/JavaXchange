@@ -147,9 +147,8 @@ public class BollingerBandsBot {
                     e.printStackTrace();
                 }
 
-                if(afterOrder) {
-                    continue;
-                }
+                boolean buyInit = false;
+                boolean sellInit = false;
 
                 double currentBuyPrice;
                 double currentSellPrice;
@@ -166,16 +165,31 @@ public class BollingerBandsBot {
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
 
+                if(!afterOrder) {
+                    for(List<Order> buys : book.getBuyOrders().values()) {
+                        for(Order order : buys) {
+                            currentBuyPrice = order.price();
+                            currentBuyQty = order.quantity();
+                            lastBuy = order;
+                            buyInit = true;
+                        }
+                    }
+                    for(List<Order> sells : book.getSellOrders().values()) {
+                        for(Order order : sells) {
+                            if(order.price() < 100) {
+                                System.out.println("PROBLEM: " + order);
+                            }
+
+                            currentSellPrice = order.price();
+                            currentSellQty = order.quantity();
+                            lastSell = order;
+                            sellInit = true;
+                        }
+                    }
+                }
+
                 if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
-
-                    for(List<Order> orders : book.getBuyOrders().values()) {
-                        lastBuy = orders.get(0);
-                    }
-
-                    for(List<Order> orders : book.getSellOrders().values()) {
-                        lastSell = orders.get(0);
-                    }
                 }
 
                 if(means.size() > 301) { //period of 300 at max
@@ -185,21 +199,25 @@ public class BollingerBandsBot {
                 calculateBollingerBands();
 
                 if (((currentSellPrice - 0.08) < LowerBand) && (LowerBand != 0d)) {
-                    out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                    out.newLine();
-                    out.flush();
-                    System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                    if(buyInit && sellInit) {
+                        out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
 
-                    shares++;
-                    pnl -= currentSellPrice;
+                        shares++;
+                        pnl -= currentSellPrice;
+                    }
                 } else if (((currentBuyPrice + 0.08) > UpperBand) && (UpperBand != 0d)) { //allows short selling
-                    out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                    out.newLine();
-                    out.flush();
-                    System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                    if(buyInit && sellInit) {
+                        out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                        out.newLine();
+                        out.flush();
+                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
 
-                    shares--;
-                    pnl += currentBuyPrice;
+                        shares--;
+                        pnl += currentBuyPrice;
+                    }
                 }
 
                 System.out.println("Shares: " + shares + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
