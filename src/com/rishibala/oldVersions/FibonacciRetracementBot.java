@@ -1,4 +1,4 @@
-package com.rishibala.oldBots;
+package com.rishibala.oldVersions;
 
 import com.rishibala.server.Order;
 import com.rishibala.server.OrderBook;
@@ -7,15 +7,16 @@ import com.rishibala.server.User;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class SMABot {
-    //Simple moving average calculations
+public class FibonacciRetracementBot {
+    //Fibonacci Retracement calculations
 
-    private static final List<Double> periodBuy = new ArrayList<>();
-    private static final List<Double> periodSell = new ArrayList<>();
     private static final List<Double> means = new ArrayList<>();
+    private static double swingHigh = 0;
+    private static double swingLow = 0;
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
@@ -30,6 +31,7 @@ public class SMABot {
 
     public static void main(String[] args) {
         int counter = 1;
+        int oppCounter = 0;
         int botId = 0;
         User user = new User();
 
@@ -71,20 +73,19 @@ public class SMABot {
                                 double tempProf = 0;
 
                                 if(shares < 0) { //for short selling
-                                    tempProf =  shares * lastSell;
-                                } else if(shares > 0) {
                                     tempProf =  shares * lastBuy;
+                                } else if(shares > 0) {
+                                    tempProf =  shares * lastSell;
                                 }
 
                                 System.out.println("-".repeat(30));
                                 System.out.println("Bot " + user.getBotId());
                                 System.out.println("Final Shares: " + shares);
-                                System.out.printf("Total pnl: $%.2f", (pnl + tempProf));
+                                System.out.printf("Total pnl: $%.2f", pnl + tempProf);
                                 System.out.println();
                                 over = true;
                                 break;
                             }
-
                             if(in.ready()) {
                                 serverMessage = in.readLine();
                             } else {
@@ -195,27 +196,6 @@ public class SMABot {
                     e.printStackTrace();
                 }
 
-                for(List<Order> buys : book.getBuyOrders().values()) {
-                    for(Order order : buys) {
-                        if(periodBuy.size() > 2000) {
-                            periodBuy.add(order.price());
-                            periodBuy.remove(0);
-                        } else {
-                            periodBuy.add(order.price());
-                        }
-                    }
-                }
-                for(List<Order> sells : book.getSellOrders().values()) {
-                    for(Order order : sells) {
-                        if(periodSell.size() > 2000) {
-                            periodSell.add(order.price());
-                            periodSell.remove(0);
-                        } else {
-                            periodSell.add(order.price());
-                        }
-                    }
-                }
-
                 boolean buyInit = false;
                 boolean sellInit = false;
 
@@ -258,44 +238,58 @@ public class SMABot {
                 }
 
                 if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
-                    means.add((currentSellPrice + currentBuyPrice) / 2);
+                    double mean = ((currentSellPrice + currentBuyPrice) / 2);
+                    means.add(mean);
+                    updateSwingHigh(mean);
+                    updateSwingLow(mean);
                 }
 
-                if(means.size() > 101) {  //period of 100 at max
+                if(means.size() > 26) {
                     means.remove(0);
                 }
 
-                double smaValue = calculateSMA();
-                double temp1 = currentSellPrice + 0.2;
-                double temp = currentBuyPrice - 0.65;
+                double[] levels = calculateFibonacciRetracement();
+                if(counter > 25 && levels != null) {
+                    double buyLevel = levels[0]; // uses the 23.6% fibonacci retracement level
+                    double sellLevel = levels[4]; // uses the 78.6% fibonacci retracement level
 
+                    double temp = buyLevel - 0.6;
+                    double temp1 = sellLevel + 0.9;
 
-                if ((temp1 < smaValue) && (counter > 100)) { //only can trade after the first 100 orders (not enough data points)
-                    if(buyInit && sellInit) {
-                        out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
-                        out.newLine();
-                        out.flush();
-                        System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                    if (currentSellPrice < temp) {
+                        if(buyInit && (sellInit)) {
+                            out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
+                            out.newLine();
+                            out.flush();
+                            System.out.println("NEW ORDER: " + botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
 
-                        shares++;
-                        pnl -= currentSellPrice;
+                            shares++;
+                            pnl -= currentSellPrice;
+                        }
+                    } else if (currentBuyPrice > temp1) { //allows short selling
+                        if(buyInit && sellInit) {
+                            out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+                            out.newLine();
+                            out.flush();
+                            System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
+
+                            shares--;
+                            pnl += currentBuyPrice;
+                        }
                     }
-                } else if ((temp > smaValue) && (counter > 100)) { //allows short selling
-                    if(buyInit && sellInit) {
-                        out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        out.newLine();
-                        out.flush();
-                        System.out.println("NEW ORDER: " + botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
-                        shares--;
-                        pnl += currentBuyPrice;
-                    }
+
+                    System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
+                    System.out.printf("PNL: $%.2f", pnl);
+                    System.out.println("\nFib Retracement Levels: " + Arrays.toString(levels) + " " + counter);
+                    System.out.println();
+                    counter++;
+                } else {
+                    System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
+                    System.out.printf("PNL: $%.2f", pnl);
+                    System.out.println("\nFib Retracement Levels: N/A" + " " + counter);
+                    System.out.println();
+                    counter++;
                 }
-
-                System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
-                System.out.printf("PNL: $%.2f", pnl);
-                System.out.println("\nSMA: " + String.format("$%.2f", smaValue) + " " + counter);
-                System.out.println();
-                counter++;
 
                 afterOrder = false;
             }
@@ -310,16 +304,73 @@ public class SMABot {
                 e.printStackTrace();
             }
         }
-
     }
 
-    private static double calculateSMA() {
-        double sum = 0;
-        for(double data : means) {
-            sum += data;
+    private static double[] calculateFibonacciRetracement() {
+        if (means.size() < 25) {
+            return null; // no trades until after we have 25 full points (not enough data points)
         }
 
-        return (sum /(means.size()));
+        if ((swingHigh == 0) || (swingLow == 0)) {
+            return null;
+        }
+
+        double[] retracementLevels = new double[5];
+        double priceRange = swingHigh - swingLow;
+
+        retracementLevels[0] = swingHigh - (0.236 * priceRange);
+        retracementLevels[1] = swingHigh - (0.382 * priceRange);
+        retracementLevels[2] = swingHigh - (0.5 * priceRange);
+        retracementLevels[3] = swingHigh - (0.618 * priceRange);
+        retracementLevels[4] = swingHigh - (0.786 * priceRange);
+
+        return retracementLevels;
+    }
+
+    private static void updateSwingHigh(double point) {
+        List<Double> periodData;
+        if(means.size() >= 250) {
+            periodData = means.subList((means.size() - 250), means.size() - 1);
+        } else if(means.size() == 1) {
+            swingHigh = means.get(0);
+            return;
+        } else {
+            periodData = means.subList(0, means.size() - 1);
+        }
+
+        double max = Double.MIN_VALUE;
+        for(double price : periodData) {
+            if(price > max) {
+                max = price;
+            }
+        }
+
+        if(point > max) {
+            swingHigh = point;
+        }
+    }
+
+    private static void updateSwingLow(double point) {
+        List<Double> periodData;
+        if(means.size() >= 250) {
+            periodData = means.subList((means.size() - 250), means.size() - 1);
+        } else if(means.size() == 1) {
+            swingHigh = means.get(0);
+            return;
+        } else {
+            periodData = means.subList(0, means.size() - 1);
+        }
+
+        double min = Double.MAX_VALUE;
+        for(double price : periodData) {
+            if(price < min) {
+                min = price;
+            }
+        }
+
+        if(point < min) {
+            swingLow = point;
+        }
     }
 
 }

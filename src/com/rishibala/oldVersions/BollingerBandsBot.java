@@ -1,4 +1,4 @@
-package com.rishibala.oldBots;
+package com.rishibala.oldVersions;
 
 import com.rishibala.server.Order;
 import com.rishibala.server.OrderBook;
@@ -10,17 +10,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class EWMABot {
-    //Estimated weighted moving average calculations
+public class BollingerBandsBot {
+    //Bollinger Bands Calculations
 
-//    private static List<Double> buyData = new ArrayList<>();
-//    private static List<Double> sellData = new ArrayList<>();
     private static final List<Double> means = new ArrayList<>();
+    private static double UpperBand;
+    private static double MiddleBand;
+    private static double LowerBand;
     private static Order lastBuy;
     private static Order lastSell;
     private static boolean firstCheck = true;
-    private static OrderBook last = new OrderBook();
-//    private static boolean afterOrder = false;
+    private static OrderBook last;
+    private static boolean afterOrder = false;
     private static int shares = 0;
     private static double pnl = 0;
     private static boolean over = false;
@@ -30,14 +31,12 @@ public class EWMABot {
 
     public static void main(String[] args) {
         int counter = 1;
-//        int oppCounter = 0;
         int botId = 0;
         User user = new User();
 
         try {
             socket = new Socket("localhost", 5000); //change localhost if on different ip
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
 
             try {
@@ -65,7 +64,6 @@ public class EWMABot {
                         String serverMessage = in.readLine();
                         while(serverMessage != null) {
                             if(serverMessage.contains("SIGNALOVER")) {
-
                                 String[] serverArgs = serverMessage.split(":");
                                 double lastBuy = Double.parseDouble(serverArgs[1]);
                                 double lastSell = Double.parseDouble(serverArgs[2]);
@@ -151,13 +149,9 @@ public class EWMABot {
                     e.printStackTrace();
                 }
 
-//                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                out = new BufferedWriter(new PrintWriter(socket.getOutputStream(), true));
-
                 OrderBook book = new OrderBook();
                 try {
 
-//                    out.println("bookReq");
                     out.write("bookReq");
                     out.newLine();
                     out.flush();
@@ -177,6 +171,7 @@ public class EWMABot {
                                     } catch (ArrayIndexOutOfBoundsException e) {
                                         book = last;
                                         System.out.println("After order error");
+                                        afterOrder = true;
                                     }
                                     break;
                                 }
@@ -200,17 +195,6 @@ public class EWMABot {
                     e.printStackTrace();
                 }
 
-//                for(List<Order> buys : book.getBuyOrders().values()) {
-//                    for(Order order : buys) {
-//                        buyData.add(order.price());
-//                    }
-//                }
-//                for(List<Order> sells : book.getSellOrders().values()) {
-//                    for(Order order : sells) {
-//                        sellData.add(order.price());
-//                    }
-//                }
-
                 boolean buyInit = false;
                 boolean sellInit = false;
 
@@ -229,71 +213,43 @@ public class EWMABot {
                 int currentBuyQty = 0;
                 int currentSellQty = 0;
 
-                for(List<Order> buys : book.getBuyOrders().values()) {
-                    Order order = buys.get(0);
-                    currentBuyPrice = order.price();
-                    currentBuyQty = order.quantity();
-                    lastBuy = order;
-                    buyInit = true;
-                }
-                for(List<Order> sells : book.getSellOrders().values()) {
-                    Order order = sells.get(0);
-                    currentSellPrice = order.price();
-                    currentSellQty = order.quantity();
-                    lastSell = order;
-                    sellInit = true;
-                }
+                if(!afterOrder) {
+                    for(List<Order> buys : book.getBuyOrders().values()) {
+                        for(Order order : buys) {
+                            currentBuyPrice = order.price();
+                            currentBuyQty = order.quantity();
+                            lastBuy = order;
+                            buyInit = true;
+                        }
+                    }
+                    for(List<Order> sells : book.getSellOrders().values()) {
+                        for(Order order : sells) {
+                            if(order.price() < 100) {
+                                System.out.println("PROBLEM: " + order);
+                            }
 
-//
-//                if(!afterOrder) {
-//                    for(List<Order> buys : book.getBuyOrders().values()) {
-//                        for(Order order : buys) {
-//                            currentBuyPrice = order.price();
-//                            currentBuyQty = order.quantity();
-//                            lastBuy = order;
-//                            buyInit = true;
-//                        }
-//                    }
-//                    for(List<Order> sells : book.getSellOrders().values()) {
-//                        for(Order order : sells) {
-//                            if(order.price() < 100) {
-//                                System.out.println("PROBLEM: " + order);
-//                            }
-//
-//                            currentSellPrice = order.price();
-//                            currentSellQty = order.quantity();
-//                            lastSell = order;
-//                            sellInit = true;
-//                        }
-//                    }
-//                }
+                            currentSellPrice = order.price();
+                            currentSellQty = order.quantity();
+                            lastSell = order;
+                            sellInit = true;
+                        }
+                    }
+                }
 
                 if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
                     means.add((currentSellPrice + currentBuyPrice) / 2);
                 }
 
-                if(means.size() > 7001) { //period of 7000
+                if(means.size() > 50) { //period of 50 at max
                     means.remove(0);
                 }
 
-                double ewmaValue = calculateEWMA();
+                calculateBollingerBands();
+                double temp1 = currentSellPrice - 0.15;
+                double temp = currentBuyPrice + 0.07;
 
-                double temp = currentBuyPrice;
-//                double temp1 = currentSellPrice;
-
-                if(shares > 50) {  //more incentive to sell
-                    temp += 0.06;
-                }
-//                if(counter < 500) {
-//                    temp1 += 0.08;
-//                }
-
-                double temp1 = currentSellPrice - 0.03;
-                temp -= 0.08;
-
-                if ((temp1 < ewmaValue) && (counter > 100)) { //only can trade after the first 100 orders (not enough data points)
+                if ((temp1 < LowerBand) && (LowerBand != 0d)) {
                     if(buyInit && sellInit) {
-//                        out.println(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.write(botId + ", BUY" + ", " + currentSellPrice + ", " + currentSellQty);
                         out.newLine();
                         out.flush();
@@ -302,9 +258,8 @@ public class EWMABot {
                         shares++;
                         pnl -= currentSellPrice;
                     }
-                } else if ((temp > ewmaValue) && (counter > 100)) { //allows short selling
+                } else if ((temp > UpperBand) && (UpperBand != 0d)) { //allows short selling
                     if(buyInit && sellInit) {
-//                      out.println(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                         out.write(botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);
                         out.newLine();
                         out.flush();
@@ -315,13 +270,13 @@ public class EWMABot {
                     }
                 }
 
-                System.out.println("Shares: " + shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
+                System.out.println("Shares: " + shares + " Current buy: " + currentBuyPrice + " current sell: " + currentSellPrice);
                 System.out.printf("PNL: $%.2f", pnl);
-                System.out.println("\nEWMA: " + String.format("$%.2f", ewmaValue) + " " + counter);
-//                System.out.println("Potential current PNL: " + );
+                System.out.println("\nBands: " + String.format("$%.2f, $%.2f, $%.2f", UpperBand, MiddleBand, LowerBand) + " " + counter);
                 System.out.println();
                 counter++;
 
+                afterOrder = false;
             }
         } catch(IOException e) {
             e.printStackTrace();
@@ -337,17 +292,28 @@ public class EWMABot {
 
     }
 
-    private static double calculateEWMA() {
-        double alpha = 0.2;
-        if(means.size() > 0) {
-            double ewma = means.get(0);
-            for (int i = 1; i < means.size(); i++) {
-                double currentPrice = means.get(i);
-                ewma = alpha * currentPrice + (1 - alpha) * ewma;
-            }
-            return ewma;
+    private static void calculateBollingerBands() {
+        if (means.size() < 50) {
+            return; //do not make any trades until we have a full period (not enough data points)
         }
-        return 0;
-    }
 
+        // SMA is middle band
+        double sum = 0;
+        for (int i = means.size() - 50; i < means.size(); i++) {
+            sum += means.get(i);
+        }
+        MiddleBand = sum / 50;
+
+        // standard deviation
+        double sumSquaredDifference = 0;
+        for (int i = means.size() - 50; i < means.size(); i++) {
+            double difference = means.get(i) - MiddleBand;
+            sumSquaredDifference += difference * difference;
+        }
+        double standardDeviation = Math.sqrt(sumSquaredDifference / (50 - 1));
+
+        // upper and lower
+        UpperBand = MiddleBand + (2 * standardDeviation);
+        LowerBand = MiddleBand - (2 * standardDeviation);
+    }
 }
