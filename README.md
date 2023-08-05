@@ -34,14 +34,14 @@ The following commands to start the server and the trading bots were designed fo
 
 #### Compile all files:
 ```
-javac com/rishibala/server/*.java com/rishibala/bots/*.java com/rishibala/start.java
+javac com/rishibala/server/*.java com/rishibala/bots/*.java com/rishibala/Start.java
 ```
 
 #### Start server and trading bots:
 Use the following keywords or similar variations to start however many instances of whatever bot you want.
 
 ```
-java com/rishibala/start Bollinger EWMA SMA Fib RSI
+java com/rishibala/Start Bollinger EWMA SMA Fib RSI
 ```
 
 ### Alternative Command Line Commands
