@@ -190,7 +190,7 @@ public class MarketMaker {
 
         try {
 
-            File file = new File("/Users/rishibala/IdeaProjects/StockExchange/src/data.txt");
+            File file = new File("/Users/rishibala/IdeaProjects/StockExchange/src/com/rishibala/data.txt");
             Scanner s = new Scanner(file);
             String jsonResponse = s.nextLine();
 

@@ -1,4 +1,4 @@
-import com.rishibala.config;
+package com.rishibala;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -11,14 +11,14 @@ class writeData {
 
     public static void main(String[] args) {
         try {
-            File file = new File("src/data.txt");
+            File file = new File("/Users/rishibala/IdeaProjects/StockExchange/src/com/rishibala/data.txt");
             if (file.createNewFile()) {
                 System.out.println("File created: " + file.getName());
             } else {
                 System.out.println("File alr exists.");
             }
 
-            FileWriter myWriter = new FileWriter("src/data.txt");
+            FileWriter myWriter = new FileWriter("/Users/rishibala/IdeaProjects/StockExchange/src/com/rishibala/data.txt");
             myWriter.flush();
             myWriter.write(getData());
             myWriter.close();
