@@ -16,6 +16,47 @@ public class BollingerBandsBot extends Bot{
     private static double LowerBand;
 
     public static void main(String[] args) {
+
+        Thread bot = new Thread(new BollingerBandsBot());
+        bot.start();
+
+    }
+
+    @Override
+    protected double[] calculate() {
+        if (means.size() < 50) {
+            return null; //do not make any trades until we have a full period (not enough data points)
+        }
+
+        // SMA is middle band
+        double sum = 0;
+        for (int i = means.size() - 50; i < means.size(); i++) {
+            sum += means.get(i);
+        }
+        MiddleBand = sum / 50;
+
+        // standard deviation
+        double sumSquaredDifference = 0;
+        for (int i = means.size() - 50; i < means.size(); i++) {
+            double difference = means.get(i) - MiddleBand;
+            sumSquaredDifference += difference * difference;
+        }
+        double standardDeviation = Math.sqrt(sumSquaredDifference / (50 - 1));
+
+        // upper and lower
+        UpperBand = MiddleBand + (2 * standardDeviation);
+        LowerBand = MiddleBand - (2 * standardDeviation);
+        
+        return null;
+    }
+
+    @Override
+    public void run() {
+        trade();
+    }
+
+    @Override
+    protected void trade() {
         int counter = 1;
 
         try {
@@ -120,34 +161,6 @@ public class BollingerBandsBot extends Bot{
         } finally {
             bot.close();
         }
-
     }
 
-    @Override
-    protected double[] calculate() {
-        if (means.size() < 50) {
-            return null; //do not make any trades until we have a full period (not enough data points)
-        }
-
-        // SMA is middle band
-        double sum = 0;
-        for (int i = means.size() - 50; i < means.size(); i++) {
-            sum += means.get(i);
-        }
-        MiddleBand = sum / 50;
-
-        // standard deviation
-        double sumSquaredDifference = 0;
-        for (int i = means.size() - 50; i < means.size(); i++) {
-            double difference = means.get(i) - MiddleBand;
-            sumSquaredDifference += difference * difference;
-        }
-        double standardDeviation = Math.sqrt(sumSquaredDifference / (50 - 1));
-
-        // upper and lower
-        UpperBand = MiddleBand + (2 * standardDeviation);
-        LowerBand = MiddleBand - (2 * standardDeviation);
-        
-        return null;
-    }
 }

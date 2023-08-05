@@ -16,6 +16,29 @@ public class SMABot extends Bot {
     private static final List<Double> periodSell = new ArrayList<>();
 
     public static void main(String[] args) {
+
+        Thread bot = new Thread(new SMABot());
+        bot.start();
+
+    }
+
+    @Override
+    protected double[] calculate() {
+        double sum = 0;
+        for(double data : means) {
+            sum += data;
+        }
+
+        return new double[]{(sum /(means.size()))};
+    }
+
+    @Override
+    public void run() {
+        trade();
+    }
+
+    @Override
+    protected void trade() {
         int counter = 1;
 
         try {
@@ -140,19 +163,7 @@ public class SMABot extends Bot {
         } catch(IOException e) {
             e.printStackTrace();
         } finally {
-           bot.close();
+            bot.close();
         }
-
     }
-
-    @Override
-    protected double[] calculate() {
-        double sum = 0;
-        for(double data : means) {
-            sum += data;
-        }
-
-        return new double[]{(sum /(means.size()))};
-    }
-
 }

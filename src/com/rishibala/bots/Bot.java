@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public abstract class Bot {
+public abstract class Bot implements Runnable{
 
     protected final List<Double> means = new ArrayList<>();
     protected Order lastBuy;
@@ -30,6 +30,7 @@ public abstract class Bot {
 
 
     protected abstract double[] calculate();
+    protected abstract void trade();
 
     protected void writeSell(double currentBuyPrice, int currentBuyQty) {
         bot.write(bot.botId + ", SELL" + ", " + currentBuyPrice + ", " + currentBuyQty);

@@ -11,6 +11,55 @@ import java.util.concurrent.TimeUnit;
 public class RSIBot extends Bot{
     //Relative Strength Index Calculations
     public static void main(String[] args) {
+
+        Thread bot = new Thread(new RSIBot());
+        bot.start();
+
+    }
+
+    @Override
+    protected double[] calculate() {
+        int dataSize = means.size();
+        if (dataSize <= 250) {
+            return new double[]{0d};
+        }
+
+        double[] priceChanges = new double[dataSize - 1];
+        for (int i=1; i<dataSize; i++) {
+            priceChanges[i - 1] = means.get(i) - means.get(i - 1);
+        }
+
+        //gains and losses
+        double avgGain = 0;
+        double avgLoss = 0;
+        for (int i = 0; i < 250; i++) {
+            if (priceChanges[i] > 0) {
+                avgGain += priceChanges[i];
+            } else {
+                avgLoss += Math.abs(priceChanges[i]);
+            }
+        }
+        avgGain /= 250;
+        avgLoss /= 250;
+
+        // relative strength rs
+        double rs;
+        if (avgLoss == 0) {
+            rs = 100;
+        } else {
+            rs = avgGain / avgLoss;
+        }
+
+        return new double[]{(100 - (100 / (1 + rs)))};
+    }
+
+    @Override
+    public void run() {
+        trade();
+    }
+
+    @Override
+    protected void trade() {
         int counter = 1;
 
         try {
@@ -117,41 +166,4 @@ public class RSIBot extends Bot{
         }
 
     }
-
-    @Override
-    protected double[] calculate() {
-        int dataSize = means.size();
-        if (dataSize <= 250) {
-            return new double[]{0d};
-        }
-
-        double[] priceChanges = new double[dataSize - 1];
-        for (int i=1; i<dataSize; i++) {
-            priceChanges[i - 1] = means.get(i) - means.get(i - 1);
-        }
-
-        //gains and losses
-        double avgGain = 0;
-        double avgLoss = 0;
-        for (int i = 0; i < 250; i++) {
-            if (priceChanges[i] > 0) {
-                avgGain += priceChanges[i];
-            } else {
-                avgLoss += Math.abs(priceChanges[i]);
-            }
-        }
-        avgGain /= 250;
-        avgLoss /= 250;
-
-        // relative strength rs
-        double rs;
-        if (avgLoss == 0) {
-            rs = 100;
-        } else {
-            rs = avgGain / avgLoss;
-        }
-
-        return new double[]{(100 - (100 / (1 + rs)))};
-    }
-
 }

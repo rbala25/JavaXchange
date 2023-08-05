@@ -16,126 +16,10 @@ public class FibonacciRetracementBot extends Bot{
     private static double swingLow = 0;
 
     public static void main(String[] args) {
-        int counter = 1;
 
-        try {
-            bot = new FibonacciRetracementBot();
-            bot.socket = new Socket("localhost", 5000); //change localhost if on different ip
-            bot.in = new BufferedReader(new InputStreamReader(bot.socket.getInputStream()));
-            bot.out = new BufferedWriter(new PrintWriter(bot.socket.getOutputStream(), true));
+        Thread bot = new Thread(new FibonacciRetracementBot());
+        bot.start();
 
-            bot.initalCheck();
-
-            while(true) {
-
-                try {
-//                    Thread.sleep(25);
-                    TimeUnit.MILLISECONDS.sleep(70);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                bot.checkEnd();
-                if(bot.over) {
-                    break;
-                }
-
-                bot.getUser();
-
-                OrderBook book = bot.getBook();
-
-                boolean buyInit = false;
-                boolean sellInit = false;
-
-                double currentBuyPrice;
-                double currentSellPrice;
-
-                if(bot.firstCheck) {
-                    currentBuyPrice = Double.MIN_VALUE;
-                    currentSellPrice = Double.MAX_VALUE;
-                    bot.firstCheck = false;
-                } else {
-                    currentBuyPrice = bot.lastBuy.price();
-                    currentSellPrice = bot.lastSell.price();
-                }
-
-                int currentBuyQty = 0;
-                int currentSellQty = 0;
-
-                if(!bot.afterOrder) {
-                    for(List<Order> buys : book.getBuyOrders().values()) {
-                        for(Order order : buys) {
-                            currentBuyPrice = order.price();
-                            currentBuyQty = order.quantity();
-                            bot.lastBuy = order;
-                            buyInit = true;
-                        }
-                    }
-                    for(List<Order> sells : book.getSellOrders().values()) {
-                        for(Order order : sells) {
-                            if(order.price() < 100) {
-                                System.out.println("PROBLEM: " + order);
-                            }
-
-                            currentSellPrice = order.price();
-                            currentSellQty = order.quantity();
-                            bot.lastSell = order;
-                            sellInit = true;
-                        }
-                    }
-                }
-
-                if((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
-                    double mean = ((currentSellPrice + currentBuyPrice) / 2);
-                    bot.means.add(mean);
-
-                    FibonacciRetracementBot fibBot = (FibonacciRetracementBot) bot;
-                    fibBot.updateSwingHigh(mean);
-                    fibBot.updateSwingLow(mean);
-                }
-
-                if(bot.means.size() > 26) {
-                    bot.means.remove(0);
-                }
-
-                double[] levels = bot.calculate();
-                if(counter > 25 && levels != null) {
-                    double buyLevel = levels[0]; // uses the 23.6% fibonacci retracement level
-                    double sellLevel = levels[4]; // uses the 78.6% fibonacci retracement level
-
-                    double temp = buyLevel - 0.6;
-                    double temp1 = sellLevel + 0.9;
-
-                    if (currentSellPrice < temp) {
-                        if(buyInit && (sellInit)) {
-                            bot.writeBuy(currentSellPrice, currentSellQty);
-                        }
-                    } else if (currentBuyPrice > temp1) { //allows short selling
-                        if(buyInit && sellInit) {
-                            bot.writeSell(currentBuyPrice, currentBuyQty);
-                        }
-                    }
-
-                    System.out.println("Shares: " + bot.shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
-                    System.out.printf("PNL: $%.2f", bot.pnl);
-                    System.out.println("\nFib Retracement Levels: " + Arrays.toString(levels) + " " + counter);
-                    System.out.println();
-                    counter++;
-                } else {
-                    System.out.println("Shares: " + bot.shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
-                    System.out.printf("PNL: $%.2f", bot.pnl);
-                    System.out.println("\nFib Retracement Levels: N/A" + " " + counter);
-                    System.out.println();
-                    counter++;
-                }
-
-                bot.afterOrder = false;
-            }
-        } catch(IOException e) {
-            e.printStackTrace();
-        } finally {
-            bot.close();
-        }
     }
 
     @Override
@@ -206,4 +90,131 @@ public class FibonacciRetracementBot extends Bot{
         }
     }
 
+    @Override
+    public void run() {
+        trade();
+    }
+
+    @Override
+    protected void trade() {
+        int counter = 1;
+
+        try {
+            bot.socket = new Socket("localhost", 5000); //change localhost if on different ip
+            bot.in = new BufferedReader(new InputStreamReader(bot.socket.getInputStream()));
+            bot.out = new BufferedWriter(new PrintWriter(bot.socket.getOutputStream(), true));
+
+            bot.initalCheck();
+
+            while (true) {
+
+                try {
+//                    Thread.sleep(25);
+                    TimeUnit.MILLISECONDS.sleep(70);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                bot.checkEnd();
+                if (bot.over) {
+                    break;
+                }
+
+                bot.getUser();
+
+                OrderBook book = bot.getBook();
+
+                boolean buyInit = false;
+                boolean sellInit = false;
+
+                double currentBuyPrice;
+                double currentSellPrice;
+
+                if (bot.firstCheck) {
+                    currentBuyPrice = Double.MIN_VALUE;
+                    currentSellPrice = Double.MAX_VALUE;
+                    bot.firstCheck = false;
+                } else {
+                    currentBuyPrice = bot.lastBuy.price();
+                    currentSellPrice = bot.lastSell.price();
+                }
+
+                int currentBuyQty = 0;
+                int currentSellQty = 0;
+
+                if (!bot.afterOrder) {
+                    for (List<Order> buys : book.getBuyOrders().values()) {
+                        for (Order order : buys) {
+                            currentBuyPrice = order.price();
+                            currentBuyQty = order.quantity();
+                            bot.lastBuy = order;
+                            buyInit = true;
+                        }
+                    }
+                    for (List<Order> sells : book.getSellOrders().values()) {
+                        for (Order order : sells) {
+                            if (order.price() < 100) {
+                                System.out.println("PROBLEM: " + order);
+                            }
+
+                            currentSellPrice = order.price();
+                            currentSellQty = order.quantity();
+                            bot.lastSell = order;
+                            sellInit = true;
+                        }
+                    }
+                }
+
+                if ((currentBuyPrice != Double.MIN_VALUE) && (currentSellPrice != Double.MAX_VALUE)) {
+                    double mean = ((currentSellPrice + currentBuyPrice) / 2);
+                    bot.means.add(mean);
+
+                    FibonacciRetracementBot fibBot = (FibonacciRetracementBot) bot;
+                    fibBot.updateSwingHigh(mean);
+                    fibBot.updateSwingLow(mean);
+                }
+
+                if (bot.means.size() > 26) {
+                    bot.means.remove(0);
+                }
+
+                double[] levels = bot.calculate();
+                if (counter > 25 && levels != null) {
+                    double buyLevel = levels[0]; // uses the 23.6% fibonacci retracement level
+                    double sellLevel = levels[4]; // uses the 78.6% fibonacci retracement level
+
+                    double temp = buyLevel - 0.6;
+                    double temp1 = sellLevel + 0.9;
+
+                    if (currentSellPrice < temp) {
+                        if (buyInit && (sellInit)) {
+                            bot.writeBuy(currentSellPrice, currentSellQty);
+                        }
+                    } else if (currentBuyPrice > temp1) { //allows short selling
+                        if (buyInit && sellInit) {
+                            bot.writeSell(currentBuyPrice, currentBuyQty);
+                        }
+                    }
+
+                    System.out.println("Shares: " + bot.shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
+                    System.out.printf("PNL: $%.2f", bot.pnl);
+                    System.out.println("\nFib Retracement Levels: " + Arrays.toString(levels) + " " + counter);
+                    System.out.println();
+                    counter++;
+                } else {
+                    System.out.println("Shares: " + bot.shares + " Current buy: $" + currentBuyPrice + " current sell: $" + currentSellPrice);
+                    System.out.printf("PNL: $%.2f", bot.pnl);
+                    System.out.println("\nFib Retracement Levels: N/A" + " " + counter);
+                    System.out.println();
+                    counter++;
+                }
+
+                bot.afterOrder = false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            bot.close();
+        }
+    }
 }

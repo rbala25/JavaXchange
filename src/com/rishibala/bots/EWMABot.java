@@ -16,6 +16,33 @@ public class EWMABot extends Bot{
 //    private static boolean afterOrder = false;
 
     public static void main(String[] args) {
+
+        Thread bot = new Thread(new EWMABot());
+        bot.start();
+
+    }
+
+    @Override
+    protected double[] calculate() {
+        double alpha = 0.2;
+        if(means.size() > 0) {
+            double ewma = means.get(0);
+            for (int i = 1; i < means.size(); i++) {
+                double currentPrice = means.get(i);
+                ewma = alpha * currentPrice + (1 - alpha) * ewma;
+            }
+            return new double[]{ewma};
+        }
+        return new double[]{0};
+    }
+
+    @Override
+    public void run() {
+        trade();
+    }
+
+    @Override
+    protected void trade() {
         int counter = 1;
 
         try {
@@ -161,19 +188,5 @@ public class EWMABot extends Bot{
             bot.close();
         }
 
-    }
-
-    @Override
-    protected double[] calculate() {
-        double alpha = 0.2;
-        if(means.size() > 0) {
-            double ewma = means.get(0);
-            for (int i = 1; i < means.size(); i++) {
-                double currentPrice = means.get(i);
-                ewma = alpha * currentPrice + (1 - alpha) * ewma;
-            }
-            return new double[]{ewma};
-        }
-        return new double[]{0};
     }
 }
