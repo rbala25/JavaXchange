@@ -30,10 +30,9 @@ This strategy is slightly less well-known, but it is another technical analysis 
 Download the repository or clone it onto your local machine. If you want to rewrite the data.txt file, use the WriteData.java file, change the file path, and create your own [Twelve Data Api](https://twelvedata.com/login) key. Otherwise, change the file path to your own data.txt file in the parseConstantData() method of the src/com/rishibala/bots/MarketMaker file. There is a ManualTradingBot in the src/com/rishibala/oldVersions package, but this was only used for inital testing, so is likely not very useful or functional by this point. This "oldVersions" package also includes all of the aforementioned trading bots but these versions do not support multithreading or running multiple instances of the bot at once.
 
 ### Command Line Commands
-The following commands to start the server and the trading bots were designed for MacOS, but some may also work for other Operating Systems.
+The following commands to start the server and the trading bots were designed for MacOS, but some may also work for other Operating Systems. Navigate to the src folder with "cd" before both of these commands.
 
 #### Compile all files:
-Navigate to the src folder with "cd" before both of these commands.
 ```
 javac com/rishibala/server/*.java com/rishibala/bots/*.java com/rishibala/start.java
 ```
