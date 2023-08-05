@@ -4,17 +4,17 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 
-class Bot implements Runnable{
+class BotHandler implements Runnable{
     private final Socket socket;
     private final int botId;
     private final OrderBook orderBook;
     private final User user;
     private BufferedWriter out;
     private BufferedReader in;
-    private static final List<Bot> bots = new ArrayList<>();
+    private static final List<BotHandler> bots = new ArrayList<>();
     private boolean over = false;
 
-    Bot(Socket socket, int botId, OrderBook orderBook, User user) {
+    BotHandler(Socket socket, int botId, OrderBook orderBook, User user) {
         this.socket = socket;
         this.botId = botId;
         this.orderBook = orderBook;
@@ -105,7 +105,7 @@ class Bot implements Runnable{
                 } else if(recievedMessage.contains("MMBOT_OVER")) {
                     String[] args = recievedMessage.split(":");
 
-                    for(Bot bot : bots) {
+                    for(BotHandler bot : bots) {
 //                        if(bot.botId != 1) {
                         try {
 
@@ -163,7 +163,7 @@ class Bot implements Runnable{
             orderBook.addOrder(order);
         }
 
-        for(Bot bot : bots) {
+        for(BotHandler bot : bots) {
             bot.checkMatches();
         }
     }
@@ -286,8 +286,8 @@ class Bot implements Runnable{
         }
     }
 
-    private static Bot getBot(int botId) {
-        for(Bot bot : bots) {
+    private static BotHandler getBot(int botId) {
+        for(BotHandler bot : bots) {
             if(bot.botId == botId) {
                 return bot;
             }

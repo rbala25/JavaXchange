@@ -42,7 +42,7 @@ public class StockExchange {
 //                }
                  user = new User(botId, 0);
 
-                Thread botThread = new Thread(new Bot(botSocket, botId, book, user));
+                Thread botThread = new Thread(new BotHandler(botSocket, botId, book, user));
 //                threads.add(botThread);
                 botThread.start();
             }
