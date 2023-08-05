@@ -27,7 +27,7 @@ The RSI is another technical indicator that measures the volatility and change i
 This strategy is slightly less well-known, but it is another technical analysis tool that is found by taking the max and min of a given period and dividing the range between them by the key Fibonacci ratios: 23.6%, 38.2%, 50%, 61.8%, and 78.6%. The bot uses the 23.6% level and the 78.6% level to determine buy and sell signals. 
 
 ## Setup
-Download the repository or clone it onto your local machine. If you want to rewrite the data.txt file, use the WriteData.java file, change the file path, and create your own [Twelve Data Api](https://twelvedata.com/login) key. Otherwise, change the file path to your own data.txt file in the parseConstantData() method of the src/com/rishibala/bots/MarketMaker file. There is a ManualTradingBot in the src/com/rishibala/oldBots package, but this was only used for inital testing, so is likely not very useful or functional by this point. This "oldBots" package also includes all of the aforementioned trading bots but these versions do not support multithreading or running multiple instances of the bot at once.
+Download the repository or clone it onto your local machine. If you want to rewrite the data.txt file, use the WriteData.java file, change the file path, and create your own [Twelve Data Api](https://twelvedata.com/login) key. Otherwise, change the file path to your own data.txt file in the parseConstantData() method of the src/com/rishibala/bots/MarketMaker file. There is a ManualTradingBot in the src/com/rishibala/oldVersions package, but this was only used for inital testing, so is likely not very useful or functional by this point. This "oldVersions" package also includes all of the aforementioned trading bots but these versions do not support multithreading or running multiple instances of the bot at once.
 
 ### Command Line Commands
 The following commands to start the server and the trading bots were designed for MacOS, but some may also work for other Operating Systems.
@@ -39,7 +39,7 @@ javac com/rishibala/server/*.java com/rishibala/bots/*.java com/rishibala/start.
 ```
 
 #### Start server and trading bots:
-Use the following key words or similar variations to start however many instances of whatever bot you want.
+Use the following keywords or similar variations to start however many instances of whatever bot you want.
 
 ```
 java com/rishibala/start Bollinger EWMA SMA Fib RSI
@@ -47,7 +47,7 @@ java com/rishibala/start Bollinger EWMA SMA Fib RSI
 
 ### Alternative Command Line Commands
 #### Manually Start the Server and Trading Bots:
-Make sure to navigate to the src folder with "cd" prior to every command and to start the MarketMaker as the first bot directly after starting the StockExchange file. The manual trading bot in the src/com/rishibala/oldBots package was only used for initial testing and is likely not very useful or functional. Use the following three commands in order, ensuring that StockExchange is the first file started, followed by the MarketMaker.
+Make sure to navigate to the src folder with "cd" prior to every command and to start the MarketMaker as the first bot directly after starting the StockExchange file. The manual trading bot in the src/com/rishibala/oldVersions package was only used for initial testing and is likely not very useful or functional. Use the following three commands in order, ensuring that StockExchange is the first file started, followed by the MarketMaker.
 
 ```
 javac com/rishibala/server/*.java com/rishibala/bots/*.java com/rishibala/start.java
