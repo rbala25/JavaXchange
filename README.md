@@ -1,6 +1,6 @@
 # JavaXchange
 
-A multithreaded Java-based stock simulator of trading bots using different well-known algorithms and trading methods.
+A multithreaded Java-based stock simulator of trading bots using different financial indicators and well-known technical analysis tools.
 
 ## Data
 Includes a data.txt file in the src/com/rishibala package which has multiple pieces of information on the price of AAPL over the course of June 2021 to January 2023. All data in the file was received from the [Twelve Data Api](https://twelvedata.com/login). The source file WriteData in the src/com/rishibala package is only needed once to produce the data in the data.txt file, but my specific API key is not given. All file paths will also have to be changed if run again.
