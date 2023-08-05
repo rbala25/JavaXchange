@@ -5,7 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-class writeData {
+class WriteData {
     //You only need to run this class once in order to generate the data.txt file
     private static final String API_KEY = config.API_KEY;
 

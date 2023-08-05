@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
-public class calculateMetrics {
+public class CalculateMetrics {
     public static void main(String[] args) {
         //mean of data prices (for variance formula) = 152.73744382989653
         //only need to run this once

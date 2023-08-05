@@ -100,6 +100,7 @@ public class FibonacciRetracementBot extends Bot{
         int counter = 1;
 
         try {
+            bot = new FibonacciRetracementBot();
             bot.socket = new Socket("localhost", 5000); //change localhost if on different ip
             bot.in = new BufferedReader(new InputStreamReader(bot.socket.getInputStream()));
             bot.out = new BufferedWriter(new PrintWriter(bot.socket.getOutputStream(), true));

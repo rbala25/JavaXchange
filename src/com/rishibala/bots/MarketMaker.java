@@ -24,12 +24,13 @@ public class MarketMaker {
         int dataSize = 0;
 
         while(!(dataSize > 0)) {
-            System.out.print("Enter Size: ");
-            try {
-                dataSize = Integer.parseInt(s.nextLine());
-                System.out.println();
-            } catch(NumberFormatException ignored) {
-            }
+            dataSize = 12000; //comment out if you want to enter size manually
+//            System.out.print("Enter Size: ");
+//            try {
+//                dataSize = Integer.parseInt(s.nextLine());
+//                System.out.println();
+//            } catch(NumberFormatException ignored) {
+//            }
         }
 
 
